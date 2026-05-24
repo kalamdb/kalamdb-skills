@@ -1,0 +1,6 @@
+interface:
+  display_name: "KalamDB"
+  short_description: "KalamDB architecture, CLI, SQL, SDK, PG extension, testing, and operations guidance."
+  default_prompt: "Use the KalamDB skill and follow its repository rules."
+policy:
+  allow_implicit_invocation: true

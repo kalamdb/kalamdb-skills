@@ -1,0 +1,38 @@
+{
+  "name": "@kalamdb/skills",
+  "version": "0.1.0",
+  "description": "Canonical KalamDB agent skills and install tooling",
+  "type": "module",
+  "license": "Apache-2.0",
+  "bin": {
+    "kalamdb-skills": "./scripts/install.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node scripts/build-targets.mjs",
+    "verify": "node scripts/verify-targets.mjs",
+    "skill:install": "node scripts/install.mjs install",
+    "skill:doctor": "node scripts/install.mjs doctor",
+    "skill:version": "node scripts/install.mjs version"
+  },
+  "files": [
+    "README.md",
+    "AGENTS.md",
+    "docs",
+    "generated",
+    "install.sh",
+    "install.ps1",
+    "scripts",
+    "skills"
+  ],
+  "keywords": [
+    "kalamdb",
+    "agent-skills",
+    "codex",
+    "claude-code",
+    "opencode",
+    "copilot"
+  ]
+}

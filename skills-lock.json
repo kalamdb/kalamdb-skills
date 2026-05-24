@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "kalamdb": {
+      "source": "/Users/jamal/git/kalamdb-skills",
+      "sourceType": "local",
+      "computedHash": "d1e23a116932adda2ff7db89510bca44a28bda1acf007c0b4f3b69ba1fa401ef"
+    }
+  }
+}

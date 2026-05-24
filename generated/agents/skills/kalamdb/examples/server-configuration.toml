@@ -1,0 +1,61 @@
+# Minimal local development server.toml pattern.
+# For the complete key map, read references/server-configuration.md.
+
+transaction_timeout_secs = 300
+max_transaction_buffer_bytes = 104857600
+
+[server]
+host = "127.0.0.1"
+port = 2900
+public_origin = ""
+workers = 0
+api_version = "v1"
+enable_http2 = true
+
+[storage]
+data_path = "./data"
+shared_tables_template = "{namespace}/{tableName}"
+user_tables_template = "{namespace}/{tableName}/{userId}"
+
+[datafusion]
+memory_limit = 67108864
+query_parallelism = 2
+max_partitions = 4
+batch_size = 1024
+
+[logging]
+level = "info"
+logs_path = "./logs"
+log_to_console = true
+format = "compact"
+slow_query_threshold_ms = 1000
+
+[performance]
+request_timeout = 30
+keepalive_timeout = 75
+max_connections = 25000
+backlog = 4096
+tokio_worker_threads = 0
+worker_max_blocking_threads = 32
+client_request_timeout = 5
+client_disconnect_timeout = 2
+max_header_size = 16384
+
+[security.cors]
+allowed_origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
+allowed_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+allowed_headers = ["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"]
+allow_credentials = true
+
+[authentication]
+jwt_secret = "replace-with-a-32-character-or-longer-secret"
+allow_remote_setup = false
+bcrypt_cost = 12
+min_password_length = 8
+max_password_length = 72
+cookie_secure = false
+
+[websocket]
+client_timeout_secs = 10
+auth_timeout_secs = 3
+heartbeat_interval_secs = 5

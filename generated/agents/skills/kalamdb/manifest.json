@@ -1,0 +1,48 @@
+{
+  "name": "kalamdb",
+  "version": "0.1.0",
+  "description": "Comprehensive KalamDB skill covering architecture, operations, CLI, auth, performance, TypeScript SDKs, Dart SDK, PG extension, SQL syntax, server configuration, API/WebSocket, integrations, testing, and troubleshooting.",
+  "generatedTargets": [
+    "agents",
+    "claude",
+    "opencode"
+  ],
+  "references": [
+    "references/architecture.md",
+    "references/operations.md",
+    "references/server-configuration.md",
+    "references/cli.md",
+    "references/auth.md",
+    "references/performance.md",
+    "references/typescript-client-sdk.md",
+    "references/typescript-orm.md",
+    "references/typescript-consumer.md",
+    "references/dart-sdk.md",
+    "references/pg-extension.md",
+    "references/sql-syntax.md",
+    "references/api-websocket.md",
+    "references/integrations.md",
+    "references/testing.md",
+    "references/troubleshooting.md"
+  ],
+  "examples": [
+    "examples/agent-change-checklist.md",
+    "examples/cli-workflows.md",
+    "examples/dart-sdk.md",
+    "examples/pg-extension.md",
+    "examples/server-configuration.toml",
+    "examples/sql-patterns.md",
+    "examples/typescript-client.md",
+    "examples/typescript-consumer.md",
+    "examples/typescript-orm.md"
+  ],
+  "maintenanceTriggers": [
+    "cli-commands",
+    "sql-syntax",
+    "api-routes",
+    "sdk-entry-points",
+    "pg-extension-flows",
+    "testing-and-benchmark-workflows",
+    "operations-and-auth-runbooks"
+  ]
+}
