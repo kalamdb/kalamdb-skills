@@ -47,13 +47,29 @@ allowed_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
 allowed_headers = ["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"]
 allow_credentials = true
 
-[authentication]
+[auth]
 jwt_secret = "replace-with-a-32-character-or-longer-secret"
 allow_remote_setup = false
 bcrypt_cost = 12
 min_password_length = 8
 max_password_length = 72
 cookie_secure = false
+
+[auth.local]
+enabled = true
+
+[auth.oidc]
+enabled = false
+# display_name = "Dex"
+# issuer = "http://127.0.0.1:5556"
+# client_id = "client"
+# Local Dex development normally uses a public PKCE client, so client_secret is omitted.
+# client_secret = "optional-confidential-client-secret"
+# scopes = ["openid", "email", "profile"]
+# auto_provision = true
+# default_role = "user"
+# broker_device_flow_enabled = false
+# device_authorization_endpoint = "http://127.0.0.1:5556/device/code"
 
 [websocket]
 client_timeout_secs = 10

@@ -92,15 +92,19 @@ Runtime config only belongs in TOML. Namespace and storage entity metadata belon
 
 Important CORS rule: do not combine wildcard origins with credentialed browser auth in production. Bind-to-all-interface deployments need explicit browser allowlists.
 
-## Auth, OAuth, Users
+## Auth, OIDC, Users
 
-`[authentication]` is aliased to internal `auth` settings.
+Canonical auth config lives under `[auth]`. Older local files may still deserialize the legacy authentication table, but new examples and docs should use `[auth]`.
 
-Keys: `root_password`, `bcrypt_cost`, `min_password_length`, `max_password_length`, `jwt_expiry_hours`, `cookie_secure`, `enforce_password_complexity`, `jwt_secret`, `allow_remote_setup`, `jwt_trusted_issuers`, `pg_auth_token`.
+`[auth]` keys: `root_password`, `bcrypt_cost`, `min_password_length`, `max_password_length`, `jwt_expiry_hours`, `cookie_secure`, `enforce_password_complexity`, `jwt_secret`, `allow_remote_setup`, `jwt_trusted_issuers`, `pg_auth_token`.
 
-`[oauth]`: `enabled`, `auto_provision`, `default_role`.
+`[auth.local]`: `enabled`. When false, password login and password setup are rejected server-side.
 
-`[oauth.providers.google|github|azure|firebase]`: `enabled`, `issuer`, `jwks_uri`, `client_id`, `client_secret`, `tenant`.
+`[auth.oidc]`: `enabled`, `display_name`, `issuer`, `client_id`, optional `client_secret`, `scopes`, `auto_provision`, `default_role`, `broker_device_flow_enabled`, optional `device_authorization_endpoint`. KalamDB supports one configured OIDC provider per server. Use the IdP redirect URIs `/ui/oauth/callback` for Admin UI browser login and `http://127.0.0.1:8787/callback` for CLI browser login.
+
+Local Dex development config should keep `[auth.local].enabled = true`, set `[auth.oidc]` to issuer `http://127.0.0.1:5556`, public client `client`, scopes `openid`, `email`, `profile`, and `auto_provision = true`.
+
+Clients discover local/OIDC login capability with `GET /v1/api/auth/login-options`; avoid documenting provider-specific client endpoints.
 
 `[user_management]`: `deletion_grace_period_days`, `cleanup_job_schedule`.
 

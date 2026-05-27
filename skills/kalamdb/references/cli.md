@@ -37,6 +37,7 @@ Connection and auth:
 - `--url <url>`, `--host <host>`, `--port <port>`
 - `--token <jwt>`
 - `--user <user>`, `--password [password]`
+- `--oidc`, `--no-browser`, `--brokered`
 - `--instance <name>`
 - `--save-credentials`
 
@@ -73,6 +74,10 @@ Execution:
 - `KALAMDB_SERVER_URL`
 - `KALAMDB_ROOT_PASSWORD`
 - `KALAMDB_ADMIN_USER`
+
+## OIDC Login
+
+`kalam login --oidc` uses browser Authorization Code with PKCE and exchanges the callback code through KalamDB. `kalam login --oidc --no-browser` uses direct provider device flow when available, then exchanges the provider ID token through KalamDB. `--brokered` keeps the provider device code on the server and polls KalamDB. All successful OIDC modes should persist KalamDB access and refresh tokens. When `kalam login` is run from an interactive terminal, successful local and OIDC logins should continue straight into the SQL shell; non-interactive invocations should still exit after the login result so automation stays one-shot.
 
 ## Schema Watch
 

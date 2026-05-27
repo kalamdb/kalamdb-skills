@@ -37,7 +37,10 @@ CLI e2e guidance:
 
 ```bash
 cargo nextest run --features e2e-tests
+cd cli && ./run-tests.sh --package kalam-cli --test oidc_cli_
 ```
+
+OIDC CLI/Admin UI tests use the shared Dex utility at `http://127.0.0.1:5556`. `cli/run-tests.sh` starts `docker/utils` Dex automatically for auth/OIDC-shaped runs unless `KALAMDB_SKIP_DOCKER_DEX=true` is set.
 
 TypeScript SDK release lane:
 
