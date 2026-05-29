@@ -58,6 +58,7 @@ From the KalamDB repo root:
 
 ```bash
 cd backend && cargo run --bin kalamdb-server
+cd backend && cargo build --release --no-default-features --features embedded-ui,mimalloc  # dashboard metrics without traceability
 cd cli && cargo build --release
 cd cli && cargo test --test smoke
 cargo nextest run

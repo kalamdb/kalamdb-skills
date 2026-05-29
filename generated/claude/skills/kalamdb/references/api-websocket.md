@@ -20,6 +20,11 @@ SQL/files:
 
 - `POST /v1/api/sql`
 - `GET /v1/files/{namespace}/{table_name}/{subfolder}/{stored_name}`
+- `POST /v1/api/table-exports`
+- `GET /v1/api/table-exports/{job_id}`
+- `GET /v1/table-exports/{export_id}`
+- `POST /v1/api/table-imports`
+- `GET /v1/api/table-imports/{job_id}`
 
 WebSocket:
 
@@ -58,6 +63,18 @@ Multipart FILE uploads use SQL placeholders like `FILE("contract")` and multipar
 Success response includes `status`, `results`, and `took`. Each result may contain `schema`, `rows`, `row_count`, `message`, and always `as_user`.
 
 Errors include stable `error.code` values such as `INVALID_SQL`, `TABLE_NOT_FOUND`, `PERMISSION_DENIED`, `NOT_LEADER`, `FILE_TOO_LARGE`, `MISSING_FILE`, and `INTERNAL_ERROR`.
+
+## Table Transfer API
+
+Admin UI table editor transfer endpoints require bearer auth and role `service`, `dba`, or `system`.
+
+- `POST /v1/api/table-exports` starts a `table_export` job for one user/shared table scope. User tables require `user_id`; shared tables omit it.
+- `GET /v1/api/table-exports/{job_id}` polls export status. Completed exports include `download_url`.
+- `GET /v1/table-exports/{export_id}` downloads the completed ZIP.
+- `POST /v1/api/table-imports` accepts multipart `namespace_id`, `table_name`, `table_type`, optional `user_id`, and `file` ZIP, then starts a `table_import` job.
+- `GET /v1/api/table-imports/{job_id}` polls import status.
+
+Table export flushes hot RocksDB rows first, then writes a ZIP with committed Parquet segments and KalamDB manifest metadata. Table import accepts only that table-export ZIP format, requires matching target table columns, and registers imported Parquet through the manifest service.
 
 ## Topic HTTP API
 

@@ -64,10 +64,21 @@ Execution:
 - `\stats` / `\metrics`
 - `\health`
 - `\flush`
+- `\export <namespace.table> [--user-id <id>] [--output <file.zip>]`
+- `\import <namespace.table> <file.zip> [--user-id <id>]`
 - `\refresh-tables` / `\refresh`
 - `\live <sql>` / `\subscribe <sql>`
 - credential commands: `\show-credentials`, `\update-credentials`, `\delete-credentials`
 - `\cluster ...`
+
+Table transfer notes:
+
+- `\export` waits for job completion and downloads the resulting ZIP archive locally.
+- `\import` uploads a ZIP archive and waits for the import job to complete.
+- Backend infers table type from table metadata; no table type flag is required.
+- For user tables, `--user-id` is required and the backend returns a validation error if missing.
+- CLI progress indicators are shown during upload/download and while waiting for OIDC verification or query responses (unless `--no-spinner` is set).
+- `kalam invite --email <email> --role <user|service|dba|system> [--expires-in-days 7]` creates a pending OIDC email invite through `CREATE USER INVITE`; it requires stored or supplied DBA/system credentials.
 
 ## Env Vars
 

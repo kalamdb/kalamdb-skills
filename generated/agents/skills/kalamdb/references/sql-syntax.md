@@ -36,11 +36,15 @@ CREATE [USER|SHARED|STREAM] TABLE [IF NOT EXISTS] [<namespace>.]<table_name> (
   STORAGE_ID = '<storage_id>',
   USE_USER_STORAGE = <TRUE|FALSE>,
   FLUSH_POLICY = '<rows:N|interval:N|rows:N,interval:N>',
-  DELETED_RETENTION_HOURS = <hours>,
   TTL_SECONDS = <seconds>,
-  ACCESS_LEVEL = '<PUBLIC|PRIVATE|RESTRICTED>'
+  ACCESS_LEVEL = '<PUBLIC|PRIVATE|RESTRICTED|DBA>',
+  EVICTION_STRATEGY = '<time_based|size_based|hybrid>',
+  MAX_STREAM_SIZE_BYTES = <bytes>,
+  COMPRESSION = '<none|snappy|zstd>'
 )];
 ```
+
+Table options are type-specific: `USER` supports `STORAGE_ID`, `USE_USER_STORAGE`, `FLUSH_POLICY`, and `COMPRESSION`; `SHARED` supports `STORAGE_ID`, `ACCESS_LEVEL`, `FLUSH_POLICY`, and `COMPRESSION`; `STREAM` supports `TTL_SECONDS`, `EVICTION_STRATEGY`, and `MAX_STREAM_SIZE_BYTES`. `COMPRESSION` is a cold-tier Parquet setting for `USER` and `SHARED` tables only; `none` writes uncompressed Parquet, `snappy` is the default, and `zstd` uses Zstandard level 1.
 
 DDL:
 
@@ -48,7 +52,7 @@ DDL:
 ALTER TABLE [<namespace>.]<table> ADD COLUMN <name> <type> [NOT NULL|NULL] [DEFAULT <value>];
 ALTER TABLE [<namespace>.]<table> DROP COLUMN <name>;
 ALTER TABLE [<namespace>.]<table> MODIFY COLUMN <name> <type> [NOT NULL|NULL];
-ALTER TABLE [<namespace>.]<table> SET TBLPROPERTIES (ACCESS_LEVEL = '<PUBLIC|PRIVATE|RESTRICTED>');
+ALTER TABLE [<namespace>.]<table> SET TBLPROPERTIES (<table_option> = <value>, ...);
 DROP [USER|SHARED|STREAM] TABLE [IF EXISTS] [<namespace>.]<table>;
 CREATE VIEW [<namespace>.]<view> AS <select_query>;
 SHOW TABLES [IN [NAMESPACE] <namespace>];
@@ -79,7 +83,8 @@ Rules: exactly one statement, target ID must be single-quoted, valid for USER an
 ## Users
 
 ```sql
-CREATE USER '<username>' WITH <PASSWORD '<password>' | OAUTH | INTERNAL> ROLE <user|service|dba|system> [EMAIL '<email>'] [STORAGE_MODE <table|region>] [STORAGE_ID '<storage_id>'];
+CREATE USER '<username>' WITH <PASSWORD '<password>' | OIDC '<auth_json>'> ROLE <user|service|dba|system> [EMAIL '<email>'] [STORAGE_MODE <table|region>] [STORAGE_ID '<storage_id>'];
+CREATE USER INVITE '<email>' ROLE <user|service|dba|system> [EXPIRES_AT <unix_ms>] [STORAGE_MODE <table|region>] [STORAGE_ID '<storage_id>'];
 ALTER USER '<username>' SET PASSWORD '<new_password>';
 ALTER USER '<username>' SET ROLE <user|service|dba|system>;
 DROP USER [IF EXISTS] '<username>';
@@ -137,3 +142,5 @@ SELECT ULID();
 SELECT CURRENT_USER();
 SELECT NOW();
 ```
+
+Admin UI table editor data transfer is API-backed, not a SQL statement: user/shared tables can be exported as table-export ZIPs and imported from those ZIPs. User tables require a `user_id`; shared tables omit it. Export flushes hot RocksDB rows before packaging committed Parquet segments and manifest metadata. Import requires the target table to already exist with matching columns.
