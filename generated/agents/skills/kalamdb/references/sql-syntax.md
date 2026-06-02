@@ -87,6 +87,7 @@ CREATE USER '<username>' WITH <PASSWORD '<password>' | OIDC '<auth_json>'> ROLE 
 CREATE USER INVITE '<email>' ROLE <user|service|dba|system> [EXPIRES_AT <unix_ms>] [STORAGE_MODE <table|region>] [STORAGE_ID '<storage_id>'];
 ALTER USER '<username>' SET PASSWORD '<new_password>';
 ALTER USER '<username>' SET ROLE <user|service|dba|system>;
+ALTER USER '<username>' SET EMAIL '<new_email>';
 DROP USER [IF EXISTS] '<username>';
 ```
 
@@ -95,6 +96,7 @@ DROP USER [IF EXISTS] '<username>';
 ```sql
 CREATE STORAGE <storage_id> TYPE '<filesystem|s3|gcs|azure>' [PATH '<path>'] [BUCKET '<bucket>'] [REGION '<region>'] [CREDENTIALS '<json>'] [CONFIG '<json>'];
 ALTER STORAGE <storage_id> SET NAME '<name>';
+ALTER STORAGE <storage_id> SET DESCRIPTION '<description>';
 DROP STORAGE [IF EXISTS] <storage_id>;
 SHOW STORAGES;
 STORAGE CHECK <storage_id> [EXTENDED];
@@ -108,28 +110,38 @@ SHOW MANIFEST;
 ## Live Queries And Topics
 
 ```sql
-SUBSCRIBE TO <namespace>.<table> [WHERE <condition>] [OPTIONS (last_rows=<n>, batch_size=<n>, from_seq_id=<n>)];
+SUBSCRIBE TO <namespace>.<table> [WHERE <condition>] [OPTIONS (last_rows=<n>, batch_size=<n>, from=<n>)];
 KILL LIVE QUERY '<subscription_id>';
 CREATE TOPIC <topic> [PARTITIONS <count>];
 DROP TOPIC <topic>;
 CLEAR TOPIC <topic>;
 ALTER TOPIC <topic> ADD SOURCE <table> ON <INSERT|UPDATE|DELETE> [WHERE <filter>] [WITH (payload = '<key|full|diff>')];
+ALTER TOPIC <topic> SET RETENTION WITH (retention_seconds = <seconds|NULL>, retention_max_bytes = <bytes|NULL>);
+ALTER TOPIC <topic> CLEAR RETENTION;
 CONSUME FROM <topic> [GROUP '<group_id>'] [FROM <LATEST|EARLIEST|offset>] [LIMIT <count>];
 ACK <topic> GROUP '<group_id>' [PARTITION <partition_id>] UPTO OFFSET <offset>;
 RESET CONSUMER GROUP '<group_id>' ON <topic> [PARTITION <partition_id>] TO <next_offset>;
 ```
 
+## DataFusion Query Surface
+
+KalamDB uses DataFusion for query planning/execution.
+
+```sql
+SELECT ... FROM ...;
+SELECT ... FROM ... INNER JOIN ... ON ...;
+WITH cte AS (SELECT ...) SELECT ... FROM cte;
+SELECT ... FROM a UNION ALL SELECT ... FROM b;
+```
+
+Treat DataFusion SQL docs as the canonical reference for advanced query syntax
+(window functions, advanced expressions, and planner behavior).
+
 ## Cluster, Backup, Functions
 
 ```sql
-CLUSTER LIST;
-CLUSTER STATUS;
-CLUSTER SNAPSHOT;
-CLUSTER PURGE --UPTO <index>;
-CLUSTER TRIGGER ELECTION;
-CLUSTER TRANSFER LEADER <node_id>;
-CLUSTER STEPDOWN;
-CLUSTER CLEAR;
+SELECT * FROM system.cluster ORDER BY is_leader DESC, node_id ASC;
+SELECT * FROM system.cluster_groups ORDER BY group_id ASC;
 
 EXPORT USER DATA;
 SHOW EXPORT;
@@ -142,5 +154,8 @@ SELECT ULID();
 SELECT CURRENT_USER();
 SELECT NOW();
 ```
+
+Use CLI cluster meta-commands for cluster operations (`\cluster ...`).
+`CLUSTER LIST` / `CLUSTER STATUS` SQL forms are deprecated.
 
 Admin UI table editor data transfer is API-backed, not a SQL statement: user/shared tables can be exported as table-export ZIPs and imported from those ZIPs. User tables require a `user_id`; shared tables omit it. Export flushes hot RocksDB rows before packaging committed Parquet segments and manifest metadata. Import requires the target table to already exist with matching columns.
