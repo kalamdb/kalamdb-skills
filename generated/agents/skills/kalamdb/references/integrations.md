@@ -16,6 +16,7 @@ Use this file when connecting KalamDB to apps, agents, workers, PostgreSQL, Reac
 - Preserve USER-table isolation; do not fake it with app-side filters.
 - Use service accounts and `executeAsUser()` for workers acting on behalf of users.
 - For browsers, prefer materialized live rows over raw events unless the app needs protocol-level frames.
+- For browser frameworks, make sure `@kalamdb/client` is not prebundled away from its companion WASM asset, and verify that `.wasm` files are emitted and served as binaries rather than HTML fallbacks.
 - For topic workers, ACK only after successful processing.
 - For PostgreSQL, prefer `auth_mode 'account_login'` for session-based bridge auth.
 - Keep SDK docs in the KalamSite repo aligned when SDK entry points change.
