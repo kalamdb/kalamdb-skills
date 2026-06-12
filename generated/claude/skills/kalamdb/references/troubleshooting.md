@@ -17,6 +17,14 @@
 - Check sibling package versions and local `file:` dependency wiring.
 - Rebuild local SDK packages before debugging higher-level examples.
 
+### Browser app loads HTML instead of the SDK WASM
+
+- Check whether the framework prebundled `@kalamdb/client` and broke its `import.meta.url` lookup.
+- In Vite-based apps, set `optimizeDeps.exclude = ['@kalamdb/client']` and keep `assetsInclude` matching `**/*.wasm`.
+- In other frameworks, confirm the `.wasm` file is copied to the final build output and served with a WASM-compatible content type.
+- If the failing response body starts with `<!doctype html>`, the request is hitting an SPA fallback, route handler, or missing-asset page instead of the binary.
+- If the app uses SSR, move client creation into a browser-only component, hook, or lazy import.
+
 ### PostgreSQL extension build or test issues
 
 - Check pgrx/PostgreSQL version alignment.

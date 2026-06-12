@@ -18,6 +18,7 @@ Use this file when connecting KalamDB to apps, agents, workers, PostgreSQL, Reac
 - Use service accounts and `executeAsUser()` for workers acting on behalf of users.
 - TypeScript: check `QueryResponse.status` on `query()`; use `queryWithFiles` + `FILE("key")` for uploads; read FILE columns via `queryRows` / `row.file()` (no `downloadFile()` helper). See [typescript-files.md](typescript-files.md).
 - For browsers, prefer materialized live rows over raw events unless the app needs protocol-level frames.
+- For browser frameworks, make sure `@kalamdb/client` is not prebundled away from its companion WASM asset, and verify that `.wasm` files are emitted and served as binaries rather than HTML fallbacks.
 - For topic workers, ACK only after successful processing.
 - For PostgreSQL, prefer `auth_mode 'account_login'` for session-based bridge auth.
 - Keep SDK docs in the KalamSite repo aligned when SDK entry points change.
