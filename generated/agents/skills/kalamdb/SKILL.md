@@ -1,79 +1,70 @@
 ---
 name: kalamdb
-description: Comprehensive KalamDB guidance for architecture, operations, CLI, auth, performance, TypeScript client/ORM/consumer SDKs, Dart SDK, PostgreSQL extension, SQL syntax, server.toml configuration, API/WebSocket, integrations, testing, and troubleshooting. Use when working anywhere in KalamDB or when you need the correct build, run, test, query, config, or extension path.
+description: KalamDB router skill — open ONE targeted reference after routing. Covers CLI (kalam init/dev), Rust/Dart/TypeScript SDKs, SQL, auth, ops, PG extension. Use for KalamDB contributor or app integration work.
 license: Apache-2.0
 compatibility: codex, claude-code, opencode, agent-skills
 metadata:
   repo: KalamDB
   audience: contributors
-  scope: architecture-operations-cli-auth-performance-typescript-dart-pg-sql-config-api-integrations-testing
+  scope: router
 ---
 
 # KalamDB
 
-Use this skill whenever the task touches KalamDB behavior, contributor workflow, or repository conventions.
+Router only. **Do not preload all references.**
+
+## Token Discipline
+
+1. Read this file first.
+2. Open **one** reference from the task table.
+3. Open a second file only when the task clearly spans areas (e.g. init + Dart SDK).
+4. For method signatures and flags, open the listed `*-api.md` file — not the whole SDK tree.
+5. Open **one** example file when you need copy-paste patterns.
+6. Full file list: [references/INDEX.md](references/INDEX.md) (use only when unsure).
 
 ## Working Rules
 
-- Treat repository performance constraints as first-class requirements.
-- Prefer the owning crate or abstraction instead of spreading behavior across layers.
-- Follow AppContext-first, type-safe wrapper, and storage-boundary rules.
-- Do not add SQL rewrite passes in hot paths.
-- Update the skill whenever KalamDB changes user-facing commands, syntax, SDK entry points, or runbooks.
+- Prefer owning crate/abstraction; follow storage boundaries and `TableId` conventions.
+- No SQL rewrite passes in hot paths.
+- Update this skill when user-facing CLI, SQL, SDK, or runbook behavior changes.
 
-## Route To The Right Reference
+## Task Router
 
-- Architecture and crate ownership: [references/architecture.md](references/architecture.md)
-- Operations and cluster workflows: [references/operations.md](references/operations.md)
-- Server runtime configuration: [references/server-configuration.md](references/server-configuration.md)
-- CLI commands and workflows: [references/cli.md](references/cli.md)
-- Auth and authorization: [references/auth.md](references/auth.md)
-- Performance and security guardrails: [references/performance.md](references/performance.md)
-- TypeScript client SDK: [references/typescript-client-sdk.md](references/typescript-client-sdk.md)
-- TypeScript ORM: [references/typescript-orm.md](references/typescript-orm.md)
-- TypeScript consumer runtime: [references/typescript-consumer.md](references/typescript-consumer.md)
-- Dart SDK: [references/dart-sdk.md](references/dart-sdk.md)
-- PostgreSQL extension: [references/pg-extension.md](references/pg-extension.md)
-- SQL syntax: [references/sql-syntax.md](references/sql-syntax.md)
-- REST and WebSocket APIs: [references/api-websocket.md](references/api-websocket.md)
-- Integrations and examples: [references/integrations.md](references/integrations.md)
-- Testing and benchmarks: [references/testing.md](references/testing.md)
-- Troubleshooting: [references/troubleshooting.md](references/troubleshooting.md)
-
-## Examples To Imitate
-
-- CLI workflows: [examples/cli-workflows.md](examples/cli-workflows.md)
-- SQL patterns: [examples/sql-patterns.md](examples/sql-patterns.md)
-- TypeScript client: [examples/typescript-client.md](examples/typescript-client.md)
-- TypeScript ORM: [examples/typescript-orm.md](examples/typescript-orm.md)
-- TypeScript consumer: [examples/typescript-consumer.md](examples/typescript-consumer.md)
-- Dart SDK: [examples/dart-sdk.md](examples/dart-sdk.md)
-- PostgreSQL extension: [examples/pg-extension.md](examples/pg-extension.md)
-- Server config template: [examples/server-configuration.toml](examples/server-configuration.toml)
-- Change checklist: [examples/agent-change-checklist.md](examples/agent-change-checklist.md)
+| Task | Reference | API detail | Example |
+|------|-----------|------------|---------|
+| New project / `kalam init` | [cli-init.md](references/cli-init.md) | — | [cli-workflows.md](examples/cli-workflows.md) |
+| Local dev / `kalam dev` | [cli-dev.md](references/cli-dev.md) | — | [cli-workflows.md](examples/cli-workflows.md) |
+| Migrations, deploy, `kalam.toml` | [cli-lifecycle.md](references/cli-lifecycle.md) | — | [cli-workflows.md](examples/cli-workflows.md) |
+| SQL shell, `kalam login`, flags | [cli.md](references/cli.md) | — | [cli-workflows.md](examples/cli-workflows.md) |
+| Rust app / `kalam-client` | [rust-sdk.md](references/rust-sdk.md) | [rust-sdk-api.md](references/rust-sdk-api.md) | [rust-sdk.md](examples/rust-sdk.md) |
+| Flutter / Dart / `kalam_link` | [dart-sdk.md](references/dart-sdk.md) | [dart-sdk-api.md](references/dart-sdk-api.md) | [dart-sdk.md](examples/dart-sdk.md) |
+| TypeScript client | [typescript-client-sdk.md](references/typescript-client-sdk.md) | [typescript-client-api.md](references/typescript-client-api.md) | [typescript-client.md](examples/typescript-client.md) |
+| TypeScript FILE columns | [typescript-files.md](references/typescript-files.md) | — | [typescript-files.md](examples/typescript-files.md) |
+| TypeScript ORM / schema gen | [typescript-orm.md](references/typescript-orm.md) | — | [typescript-orm.md](examples/typescript-orm.md) |
+| TypeScript React live UI | [typescript-react.md](references/typescript-react.md) | — | [typescript-react.md](examples/typescript-react.md) |
+| Topic workers (TS) | [typescript-consumer.md](references/typescript-consumer.md) | — | [typescript-consumer.md](examples/typescript-consumer.md) |
+| SQL syntax / DDL | [sql-syntax.md](references/sql-syntax.md) | — | [sql-patterns.md](examples/sql-patterns.md) |
+| Auth / RBAC / JWT | [auth.md](references/auth.md) | — | — |
+| Server `server.toml` | [server-configuration.md](references/server-configuration.md) | — | [server-configuration.toml](examples/server-configuration.toml) |
+| REST / WebSocket protocol | [api-websocket.md](references/api-websocket.md) | — | — |
+| Architecture / crate map | [architecture.md](references/architecture.md) | — | — |
+| Ops / cluster | [operations.md](references/operations.md) | — | — |
+| PostgreSQL extension | [pg-extension.md](references/pg-extension.md) | — | [pg-extension.md](examples/pg-extension.md) |
+| Tests / benchmarks | [testing.md](references/testing.md) | — | — |
+| Debugging | [troubleshooting.md](references/troubleshooting.md) | — | — |
+| Choosing integration surface | [integrations.md](references/integrations.md) | — | — |
+| Repo change checklist | — | — | [agent-change-checklist.md](examples/agent-change-checklist.md) |
 
 ## Quick Commands
 
-From the KalamDB repo root:
-
 ```bash
 cd backend && cargo run --bin kalamdb-server
-cd backend && cargo build --release --no-default-features --features embedded-ui,mimalloc  # dashboard metrics without traceability
-cd cli && cargo build --release
-cd cli && cargo test --test smoke
+cd cli && cargo build --release && cargo test --test smoke
 cargo nextest run
-./scripts/test-all.sh
-cd benchv2 && ./run-benchmarks.sh
-cd pg && cargo build
 ```
 
-## Companion Skills In The Main KalamDB Repo
+New app: `kalam init` → `kalam dev`. See [cli-init.md](references/cli-init.md).
 
-When installed alongside the main repo, also consult the repo-local skills for deeper internals:
+## Repo-Local Deep Skills
 
-- `datafusion`
-- `mvcc`
-- `raft`
-- `rust-skills`
-
-Use those for subsystem-specific deep dives after this skill has routed the task to the correct slice.
+For internals after routing: `mvcc`, `raft`, `datafusion`, `rust-skills` in the main KalamDB repo.

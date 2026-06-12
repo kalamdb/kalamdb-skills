@@ -1,47 +1,41 @@
 # Dart SDK
 
-Use this file for `kalam_link`, Flutter/Dart app integration, auth-aware clients, live rows, and generated bindings.
+`kalam_link` — Flutter/Dart queries and live rows. Type: `KalamClient`.
 
-## Sources
+**API tables:** [dart-sdk-api.md](dart-sdk-api.md) (open only when calling methods).
 
-- `link/sdks/dart/README.md`
-- `link/sdks/dart/lib/`
-- `link/kalam-link-dart/`
+Sources: `link/sdks/dart/lib/src/kalam_client.dart`, `link/kalam-link-dart/`.
 
 ## Install
 
 ```yaml
-dependencies:
-  kalam_link: ^0.4.1-beta.2
+kalam_link: ^0.5.2-rc.2
 ```
 
-```bash
-flutter pub add kalam_link
+Import: `package:kalam_link/kalam_link.dart`.
+
+## Boot (Flutter)
+
+```dart
+await KalamClient.init();  // OK before runApp()
+runApp(...);
+// connect() after first frame — not before runApp()
 ```
 
-## Generated Boundary
+## Design
 
-Do not edit `link/sdks/dart/lib/src/generated` by hand. Regenerate and prepare SDK artifacts with `link/sdks/dart/build.sh`.
+- Rust bridge via `flutter_rust_bridge`; shared behavior with `kalam-client`.
+- UI: `live()` / `liveTable()`. Debug/raw: `liveEvents()`.
+- Live SQL: `SELECT ... FROM ... WHERE ...` only.
+- No topic consumers or server setup in Dart SDK.
+- Do not edit `lib/src/generated` or CLI `lib/generated/kalam.dart` (placeholder gen).
 
-## Owns
+## Agent Rules
 
-- `KalamClient.init()` runtime initialization
-- `KalamClient.connect()`
-- `Auth.jwt`, `Auth.basic`, `Auth.none`
-- SQL queries with `$1`, `$2`, ... parameter binding
-- typed rows through `KalamCellValue` accessors
-- `live()`, `liveTable()`, and `liveEvents()`
-- `SeqId` resume and `onCheckpoint`
-- `ConnectionHandlers`, keepalive control, SDK logging
-- token refresh helpers
+- Credentials via `authProvider` only; `Auth.none()` not `Auth.none`.
+- `live()` returns `Stream` — cancel subscription, no `.stop()`.
+- Check `result.success` before `result.rows`.
 
-Topic consumer / ACK worker APIs and initial server bootstrap flows are intentionally outside the Dart SDK surface.
+Example: [examples/dart-sdk.md](../examples/dart-sdk.md).
 
-## Flutter Boot Rule
-
-Call `KalamClient.init()` before other SDK calls. Avoid awaiting `KalamClient.connect()` during app boot; connect reactively from app/auth state instead.
-
-## Examples
-
-- `dart run example/simple-events/main.dart`
-- `dart run example/chat-app/main.dart`
+Repo examples: `dart run example/simple-events/main.dart`, `example/chat-app/main.dart`.

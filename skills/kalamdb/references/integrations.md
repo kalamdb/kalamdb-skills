@@ -6,8 +6,9 @@ Use this file when connecting KalamDB to apps, agents, workers, PostgreSQL, Reac
 
 - Browser apps: `@kalamdb/client`, `@kalamdb/react`, Admin UI, WebSocket live rows
 - Node services: `@kalamdb/client`, `@kalamdb/orm`
-- Topic workers and agents: `@kalamdb/consumer`
-- Flutter/Dart apps: `kalam_link`
+- Rust services and workers: `kalam-client` (`KalamLinkClient`)
+- Topic workers and agents: `@kalamdb/consumer` (TypeScript) or `kalam-client` with `consumer` feature (Rust)
+- Flutter/Dart apps: `kalam_link` (`KalamClient`)
 - PostgreSQL: `pg_kalam` FDW and gRPC bridge
 - AI/chat examples: `examples/react-ai-chat`, `examples/chat-with-ai`, `examples/summarizer-agent`
 
@@ -15,6 +16,7 @@ Use this file when connecting KalamDB to apps, agents, workers, PostgreSQL, Reac
 
 - Preserve USER-table isolation; do not fake it with app-side filters.
 - Use service accounts and `executeAsUser()` for workers acting on behalf of users.
+- TypeScript: check `QueryResponse.status` on `query()`; use `queryWithFiles` + `FILE("key")` for uploads; read FILE columns via `queryRows` / `row.file()` (no `downloadFile()` helper). See [typescript-files.md](typescript-files.md).
 - For browsers, prefer materialized live rows over raw events unless the app needs protocol-level frames.
 - For topic workers, ACK only after successful processing.
 - For PostgreSQL, prefer `auth_mode 'account_login'` for session-based bridge auth.
@@ -26,5 +28,6 @@ Use this file when connecting KalamDB to apps, agents, workers, PostgreSQL, Reac
 - `examples/chat-with-ai/`
 - `examples/simple-typescript/`
 - `examples/summarizer-agent/`
+- `link/sdks/rust/examples/`
 - `link/sdks/dart/example/`
 - `pg/local_test.sql`

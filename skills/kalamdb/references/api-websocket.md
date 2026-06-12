@@ -112,3 +112,16 @@ Client messages: `authenticate`, `subscribe`, `next_batch`, `unsubscribe`.
 Server messages: `auth_success`, `auth_error`, `subscription_ack`, `initial_data_batch`, `change`, `error`.
 
 Clients must handle text JSON and gzip-compressed binary JSON server frames. Clients must not send binary frames.
+
+## SDK Connection Notes
+
+The TypeScript and WASM clients surface connection failures through `onConnectionError()` and legacy `onError()`.
+
+This includes failures before the WebSocket is created, not just protocol-level socket errors:
+
+- invalid URL / malformed WS URL conversion
+- auth-provider resolution failures
+- login or refresh failures used during connection bootstrap
+- WebSocket construction failures and refused connections
+
+The shared client marks these as recoverable or fatal so SDK wrappers can preserve one connection error model across app clients, consumer clients, and `runConsumer()`.

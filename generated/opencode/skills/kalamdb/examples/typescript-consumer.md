@@ -7,6 +7,12 @@ import { createConsumerClient, runConsumer } from '@kalamdb/consumer';
 const client = createConsumerClient({
   url: 'http://localhost:2900',
   authProvider: async () => Auth.basic('support-worker', 'Secret123!'),
+  onConnect: () => {
+    console.log('worker client connected');
+  },
+  onConnectionError: ({ message, recoverable, attempt }) => {
+    console.error(`worker client ${recoverable ? 'retryable' : 'fatal'} error on attempt ${attempt}: ${message}`);
+  },
 });
 
 await runConsumer({
@@ -14,6 +20,12 @@ await runConsumer({
   name: 'support-summary-worker',
   topic: 'support.inbox_events',
   groupId: 'support-summary-worker',
+  onConnect: () => {
+    console.log('worker loop healthy');
+  },
+  onConnectionError: ({ message, recoverable, attempt }) => {
+    console.error(`worker loop stopped after attempt ${attempt}: ${recoverable ? 'retryable' : 'fatal'} ${message}`);
+  },
   retry: {
     maxAttempts: 3,
     initialBackoffMs: 250,

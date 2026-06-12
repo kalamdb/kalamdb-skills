@@ -1,23 +1,34 @@
 {
   "name": "kalamdb",
   "version": "0.1.0",
-  "description": "Comprehensive KalamDB skill covering architecture, operations, CLI, auth, performance, TypeScript SDKs, Dart SDK, PG extension, SQL syntax, server configuration, API/WebSocket, integrations, testing, and troubleshooting.",
+  "description": "Token-efficient KalamDB router skill. Open SKILL.md, then one targeted reference. Covers CLI, Rust/Dart/TypeScript SDKs, SQL, auth, ops, PG extension.",
   "generatedTargets": [
     "agents",
     "claude",
     "opencode"
   ],
   "references": [
+    "references/INDEX.md",
     "references/architecture.md",
     "references/operations.md",
     "references/server-configuration.md",
     "references/cli.md",
+    "references/cli-init.md",
+    "references/cli-dev.md",
+    "references/cli-lifecycle.md",
+    "references/cli-project-workflow.md",
     "references/auth.md",
     "references/performance.md",
     "references/typescript-client-sdk.md",
+    "references/typescript-client-api.md",
+    "references/typescript-files.md",
     "references/typescript-orm.md",
+    "references/typescript-react.md",
     "references/typescript-consumer.md",
+    "references/rust-sdk.md",
+    "references/rust-sdk-api.md",
     "references/dart-sdk.md",
+    "references/dart-sdk-api.md",
     "references/pg-extension.md",
     "references/sql-syntax.md",
     "references/api-websocket.md",
@@ -26,15 +37,19 @@
     "references/troubleshooting.md"
   ],
   "examples": [
+    "examples/INDEX.md",
     "examples/agent-change-checklist.md",
     "examples/cli-workflows.md",
+    "examples/rust-sdk.md",
     "examples/dart-sdk.md",
     "examples/pg-extension.md",
     "examples/server-configuration.toml",
     "examples/sql-patterns.md",
     "examples/typescript-client.md",
+    "examples/typescript-files.md",
     "examples/typescript-consumer.md",
-    "examples/typescript-orm.md"
+    "examples/typescript-orm.md",
+    "examples/typescript-react.md"
   ],
   "maintenanceTriggers": [
     "cli-commands",

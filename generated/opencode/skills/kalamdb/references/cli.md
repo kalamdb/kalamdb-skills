@@ -5,9 +5,12 @@ Use this file for `kalam` CLI command work, shell examples, smoke tests that use
 ## Sources
 
 - `cli/README.md`
+- `cli/DEV.md`
 - `docs/getting-started/cli.md`
 - `cli/src/args.rs`
+- `cli/src/args/workflow.rs`
 - `cli/src/commands/`
+- `cli/src/workflow/`
 - `cli/tests/`
 
 ## Install And Build
@@ -22,6 +25,9 @@ The source build binary is `cli/target/release/kalam`.
 
 ## Primary Commands
 
+Interactive and one-shot SQL:
+
+- `kalam` (interactive shell)
 - `kalam update`
 - `kalam version`
 - `kalam doctor`
@@ -29,6 +35,19 @@ The source build binary is `cli/target/release/kalam`.
 - `kalam logout`
 - `kalam whoami`
 - `kalam token create --name <name>`
+
+Project workflow (require `kalam.toml`):
+
+- `kalam init` — scaffold a new project
+- `kalam dev` — local dev orchestration (server, schema pipeline, processes)
+- `kalam link` — add/update environment entries
+- `kalam schema gen` / `kalam schema pull`
+- `kalam migration create` / `kalam migration status` / `kalam migration seal`
+- `kalam db migrate`
+- `kalam status`
+- `kalam deploy`
+
+Project workflow (split for tokens): [cli-init.md](cli-init.md), [cli-dev.md](cli-dev.md), [cli-lifecycle.md](cli-lifecycle.md).
 
 ## Important Flags
 
@@ -100,3 +119,20 @@ kalam --watch-schema --table app.messages --run "npm run schema:gen"
 ```
 
 Use `--interval 2s` or `--interval 500ms` for faster local loops.
+
+## Quick Start: New Project
+
+```bash
+mkdir my-app && cd my-app
+kalam init
+kalam dev
+```
+
+Non-interactive (CI/agents):
+
+```bash
+kalam init --yes --name my-app --schema-mode sql --languages typescript --server-mode local
+kalam dev
+```
+
+See [cli-init.md](cli-init.md) / [cli-dev.md](cli-dev.md) / [cli-lifecycle.md](cli-lifecycle.md) for workflow detail.

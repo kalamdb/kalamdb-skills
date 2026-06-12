@@ -1,12 +1,11 @@
 # TypeScript Client SDK
 
-Use this file for `@kalamdb/client` work.
+Overview for `@kalamdb/client`. Method tables: [typescript-client-api.md](typescript-client-api.md). **FILE columns**: [typescript-files.md](typescript-files.md).
 
 ## Sources
 
 - `link/sdks/typescript/client/`
 - `link/sdks/typescript/client/README.md`
-- `docs/sdk/sdk.md`
 
 ## Install
 
@@ -14,36 +13,152 @@ Use this file for `@kalamdb/client` work.
 npm i @kalamdb/client
 ```
 
-Runtime targets: Node.js 18+ and modern browsers.
+Runtime: Node.js 18+ and modern browsers (WASM + WebSocket).
 
-## Owns
+## Quick Start
 
-- `createClient()`
-- `Auth.basic`, `Auth.jwt`, `Auth.none`
-- SQL execution over HTTP
-- FILE upload/download helpers
-- materialized live rows through `live()` and `liveTable()`
-- low-level `liveEvents()` raw protocol stream
-- `executeAsUser()` for authorized USER/STREAM table delegation
-- `SeqId` resume support
+```typescript
+import { Auth, createClient } from '@kalamdb/client';
 
-## Live Query Guidance
+const client = createClient({
+  url: 'http://localhost:2900',
+  namespace: 'default', // optional; default for unqualified tables + file URLs
+  authProvider: async () => Auth.basic('alice', 'Secret123!'),
+  onConnectionError: (err) => {
+    console.error(`[${err.recoverable ? 'retryable' : 'fatal'}] ${err.message}`);
+  },
+});
 
-Prefer `live()` for app UI. It returns the current materialized row set and hides low-level protocol frames.
+await client.initialize(); // optional; first query/live call auto-inits
+```
 
-Use options intentionally:
+## Best Practices
 
-- `batchSize`: server snapshot chunk size
-- `lastRows`: initial rewind count
-- `limit`: maximum client materialized row count
-- `from`: resume from a `SeqId`
-- `getKey`: row identity override when the query lacks an `id` column
-- `onCheckpoint`: persist `lastSeqId`
+1. **Always use `authProvider`** — not legacy static auth fields. Return `Auth.basic`, `Auth.jwt`, or `Auth.none` (localhost only).
+2. **Check query errors explicitly** — `query()` returns `QueryResponse` with `status: 'success' | 'error'`. It does not throw on SQL errors.
+3. **Do not rely on `queryOne` / `queryAll` for errors** — they return `null` / `[]` when `status === 'error'` without surfacing `response.error`.
+4. **Prefer `onConnectionError` over `onError`** — same callback shape; `onError` is a compatibility alias.
+5. **Register connection error handler in production** — otherwise the SDK logs failures but your UI may look “stuck”.
+6. **USER tables are auth-scoped** — never add fake `WHERE user_id = ?` filters. Use `executeAsUser()` only for authorized service delegation.
+7. **Live subscription SQL is strict on `client.live()`** — use `SELECT ... FROM ... WHERE ...` only (no `ORDER BY` / `LIMIT` / joins). See Live section below.
+8. **FILE uploads use `queryWithFiles`** — placeholders `FILE("name")` in SQL; multipart field `file:name`. See [typescript-files.md](typescript-files.md).
+9. **FILE reads use URLs, not a download helper** — TS has no `downloadFile()` like Rust/Dart. Use `queryRows` + `row.file()` or `KalamCellValue.asFileUrl()`.
+10. **Set `namespace` on the client** when apps use unqualified table names or need consistent file URL context.
 
-Use `liveEvents()` only when the caller needs raw `subscription_ack`, `initial_data_batch`, `change`, and error frames.
+## Error Handling
 
-## Tenant Boundary Rule
+### Query responses (`query`, `insert`, `update`, `executeAsUser`)
 
-USER tables are scoped by authenticated user. Do not add app-side `WHERE user_id = ?` as a substitute for KalamDB isolation.
+```typescript
+const response = await client.query('SELECT * FROM app.users WHERE id = $1', [id]);
 
-For service workers writing on behalf of a user, use `executeAsUser()` and only pass IDs authorized by the actor role.
+if (response.status !== 'success') {
+  const { code, message, details } = response.error ?? { code: 'UNKNOWN', message: 'query failed' };
+  // codes include INVALID_SQL, TABLE_NOT_FOUND, PERMISSION_DENIED, TOKEN_EXPIRED, ...
+  throw new Error(`${code}: ${message}${details ? ` (${details})` : ''}`);
+}
+
+const rows = response.results?.[0]?.named_rows ?? [];
+```
+
+`queryWithFiles` **throws** `Error` on HTTP or `status !== 'success'` (stricter than `query()`). On `TOKEN_EXPIRED` it refreshes auth via `authProvider` but **does not retry** the multipart upload.
+
+### Connection and auth (`onConnectionError`)
+
+`ConnectionError` fields:
+
+| Field | Meaning |
+|-------|---------|
+| `message` | Human-readable failure (includes URL, user hint when available) |
+| `recoverable` | `true` = transient network/service; `false` = config, URL, or fatal auth |
+| `hint` | Suggested fix |
+| `url` | Server base URL |
+| `authUser` | Basic-auth username when relevant |
+
+Treat `recoverable: false` as stop-and-fix (wrong URL, bad credentials, auth provider failure). `recoverable: true` may clear after reconnect.
+
+`onConnect` fires when the shared realtime socket is healthy (including after recovery). `wsLazyConnect: true` (default) defers the socket until the first `live()` / `liveTable()` / `liveEvents()` call.
+
+### Live subscription errors (`onError` in `LiveOptions`)
+
+```typescript
+onError: (event) => {
+  // event.code, event.message — subscription-level, not connection-level
+},
+```
+
+Use `onCheckpoint` to persist `lastSeqId` (`SeqId`) for resume via `from: SeqId.from('...')`.
+
+### Auth provider retries
+
+`authProviderMaxAttempts` (default 3), `authProviderInitialBackoffMs` (250), `authProviderMaxBackoffMs` (2000) apply when resolving credentials before connect.
+
+## Live Queries
+
+### `client.live()` / `liveTable()` (direct WASM subscription)
+
+Subscription SQL sent to the server must match:
+
+```sql
+SELECT col1, col2 FROM namespace.table WHERE ...
+```
+
+No `ORDER BY`, `LIMIT`, `GROUP BY`, `JOIN`, or `UNION`. Sort in the callback or use a controller (below).
+
+Options: `batchSize`, `lastRows`, `limit` (client row cap), `from` (`SeqId`), `getKey`, `mapRow`, `onCheckpoint`, `onError`.
+
+Returns `Unsubscribe` — call it to stop: `const stop = await client.live(...); await stop();`
+
+### ORDER BY / LIMIT (TypeScript-only client projection)
+
+When the app needs `ORDER BY` or `LIMIT` in live SQL, use `createRawSqlLiveDescriptor` + `createLiveQueryController` (or `@kalamdb/react` `useLiveQuery`, which does this internally):
+
+```typescript
+import { createRawSqlLiveDescriptor } from '@kalamdb/client';
+
+const descriptor = createRawSqlLiveDescriptor(
+  `SELECT id, body, created_at FROM chat.messages WHERE room = $1 ORDER BY created_at ASC LIMIT 200`,
+  { limit: 200 },
+);
+
+const controller = client.createLiveQueryController(descriptor, {
+  onCheckpoint: (cp) => saveSeq(cp.lastSeqId),
+});
+
+controller.subscribe((snapshot) => render(snapshot.rows));
+await controller.start();
+// await controller.stop() when done
+```
+
+`normalizeLiveSql` strips `ORDER BY` / `LIMIT` for the wire subscription and reapplies them client-side via `projectLiveRows`.
+
+**Rust/Dart SDKs do not support ORDER BY in live SQL** — this projection path is TypeScript-specific.
+
+### Raw protocol
+
+Use `liveEvents()` only when the app needs `subscription_ack`, `initial_data_batch`, `change`, and error frames.
+
+## Tenant Boundary
+
+USER tables are scoped by authenticated user. Do not substitute KalamDB isolation with app-side `user_id` filters.
+
+For workers writing on behalf of a user:
+
+```typescript
+await client.executeAsUser(
+  'INSERT INTO app.inbox (title) VALUES ($1)',
+  targetUserId,
+  ['Hello'],
+);
+```
+
+Only target users the actor role may impersonate.
+
+## Related
+
+| Topic | File |
+|-------|------|
+| Method tables | [typescript-client-api.md](typescript-client-api.md) |
+| FILE upload/download | [typescript-files.md](typescript-files.md) |
+| React live UI | [typescript-react.md](typescript-react.md) |
+| Example patterns | [typescript-client.md](../examples/typescript-client.md) |
