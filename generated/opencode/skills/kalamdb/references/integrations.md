@@ -2,6 +2,14 @@
 
 Use this file when connecting KalamDB to apps, agents, workers, PostgreSQL, React, Flutter, browser clients, or AI workflows.
 
+## Full-Stack React + Agent (recommended path)
+
+1. Pick template — [cli-templates.md](../references/cli-templates.md) → `kalam init --template <id> --yes ...`
+2. Extend scaffold — edit `schema.sql`, app source, `[dev.processes]` as needed
+3. `kalam dev` — one command for server, schema auto-gen, and all managed processes
+
+Do not hand-build project layout when a template already covers the stack. Manual fallback: [full-stack-react-agent.md](../examples/full-stack-react-agent.md).
+
 ## Integration Surfaces
 
 - Browser apps: `@kalamdb/client`, `@kalamdb/react`, Admin UI, WebSocket live rows
@@ -16,7 +24,7 @@ Use this file when connecting KalamDB to apps, agents, workers, PostgreSQL, Reac
 
 - Preserve USER-table isolation; do not fake it with app-side filters.
 - Use service accounts and `executeAsUser()` for workers acting on behalf of users.
-- TypeScript: check `QueryResponse.status` on `query()`; use `queryWithFiles` + `FILE("key")` for uploads; read FILE columns via `queryRows` / `row.file()` (no `downloadFile()` helper). See [typescript-files.md](typescript-files.md).
+- TypeScript: check `QueryResponse.status` on `query()`; for FILE uploads use `kalamFile()` with `@kalamdb/orm` or `queryWithFiles` + `FILE("key")` for raw SQL; read FILE columns via `queryRows` / `row.file()` (no `downloadFile()` helper). See [typescript-files.md](typescript-files.md).
 - For browsers, prefer materialized live rows over raw events unless the app needs protocol-level frames.
 - For browser frameworks, make sure `@kalamdb/client` is not prebundled away from its companion WASM asset, and verify that `.wasm` files are emitted and served as binaries rather than HTML fallbacks.
 - For topic workers, ACK only after successful processing.

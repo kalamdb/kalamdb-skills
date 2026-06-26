@@ -27,14 +27,19 @@ Router only. **Do not preload all references.**
 - Prefer owning crate/abstraction; follow storage boundaries and `TableId` conventions.
 - No SQL rewrite passes in hot paths.
 - Update this skill when user-facing CLI, SQL, SDK, or runbook behavior changes.
+- **Template-first:** for new apps, pick the closest `kalam init --template` scaffold and extend it — do not build equivalent boilerplate from scratch when a template exists. Catalog: [cli-templates.md](references/cli-templates.md).
+- **Schema-first:** for app work, edit `schema.sql` before writing app/domain code, run generation, and treat generated SDK/ORM types as source of truth. Do not hand-write duplicate row models first.
+- **AI assistant chat:** always include visible thinking/typing and frontend token streaming. Use direct `CREATE USER TABLE` for conversation/message rows, direct `CREATE STREAM TABLE` for token rows, and a topic/source from user message inserts for the agent. Do not add an app `users` table or fake `user_id` tenancy columns for authenticated USER-table data; KalamDB auth already supplies the user identity.
 
 ## Task Router
 
 | Task | Reference | API detail | Example |
 |------|-----------|------------|---------|
-| New project / `kalam init` | [cli-init.md](references/cli-init.md) | — | [cli-workflows.md](examples/cli-workflows.md) |
+| New project / `kalam init` | [cli-init.md](references/cli-init.md) + [cli-templates.md](references/cli-templates.md) | — | [cli-templates.md](examples/cli-templates.md) |
 | Local dev / `kalam dev` | [cli-dev.md](references/cli-dev.md) | — | [cli-workflows.md](examples/cli-workflows.md) |
-| Migrations, deploy, `kalam.toml` | [cli-lifecycle.md](references/cli-lifecycle.md) | — | [cli-workflows.md](examples/cli-workflows.md) |
+| Full-stack React + agent | [cli-templates.md](references/cli-templates.md) + [cli-dev.md](references/cli-dev.md) | — | [full-stack-react-agent.md](examples/full-stack-react-agent.md) |
+| Migrations, link, status | [cli-lifecycle.md](references/cli-lifecycle.md) | — | [cli-workflows.md](examples/cli-workflows.md) |
+| `kalam.toml` config | [kalam-toml.md](references/kalam-toml.md) | — | [kalam.toml](examples/kalam.toml) |
 | SQL shell, `kalam login`, flags | [cli.md](references/cli.md) | — | [cli-workflows.md](examples/cli-workflows.md) |
 | Rust app / `kalam-client` | [rust-sdk.md](references/rust-sdk.md) | [rust-sdk-api.md](references/rust-sdk-api.md) | [rust-sdk.md](examples/rust-sdk.md) |
 | Flutter / Dart / `kalam_link` | [dart-sdk.md](references/dart-sdk.md) | [dart-sdk-api.md](references/dart-sdk-api.md) | [dart-sdk.md](examples/dart-sdk.md) |
@@ -63,7 +68,7 @@ cd cli && cargo build --release && cargo test --test smoke
 cargo nextest run
 ```
 
-New app: `kalam init` → `kalam dev`. See [cli-init.md](references/cli-init.md).
+New app: pick a [template](references/cli-templates.md) → `kalam init --template <id>` → `kalam dev`. Extend the scaffold; avoid rebuilding from scratch.
 
 ## Repo-Local Deep Skills
 

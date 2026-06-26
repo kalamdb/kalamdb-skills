@@ -44,6 +44,13 @@ CREATE [USER|SHARED|STREAM] TABLE [IF NOT EXISTS] [<namespace>.]<table_name> (
 )];
 ```
 
+For app schemas, prefer direct table-type declarations so agents and reviewers cannot miss the storage boundary:
+
+```sql
+CREATE USER TABLE app.messages (...);
+CREATE STREAM TABLE app.message_streams (...) WITH (TTL_SECONDS = 300);
+```
+
 Table options are type-specific: `USER` supports `STORAGE_ID`, `USE_USER_STORAGE`, `FLUSH_POLICY`, and `COMPRESSION`; `SHARED` supports `STORAGE_ID`, `ACCESS_LEVEL`, `FLUSH_POLICY`, and `COMPRESSION`; `STREAM` supports `TTL_SECONDS`, `EVICTION_STRATEGY`, and `MAX_STREAM_SIZE_BYTES`. `COMPRESSION` is a cold-tier Parquet setting for `USER` and `SHARED` tables only; `none` writes uncompressed Parquet, `snappy` is the default, and `zstd` uses Zstandard level 1.
 
 DDL:
@@ -69,6 +76,61 @@ UPDATE [<namespace>.]<table> SET <column> = <value> WHERE <condition>;
 DELETE FROM [<namespace>.]<table> WHERE <condition>;
 SELECT <columns> FROM [<namespace>.]<table> [WHERE ...] [GROUP BY ...] [ORDER BY ...] [LIMIT ...];
 ```
+
+### Upsert (`ON CONFLICT DO UPDATE`)
+
+PostgreSQL-style upsert for literal `INSERT ... VALUES` on `USER`, `SHARED`, and `STREAM`
+tables:
+
+```sql
+INSERT INTO [<namespace>.]<table> (<columns>) VALUES (<values>)
+ON CONFLICT (<primary_key_column>)
+DO UPDATE SET
+  <column1> = EXCLUDED.<column1>,
+  <column2> = <literal>;
+```
+
+Behavior:
+
+- Primary key exists → apply `DO UPDATE SET`.
+- Primary key missing → insert the `VALUES` row.
+- Outside explicit transactions, KalamDB wraps each upsert in its own internal transaction.
+- Inside `BEGIN` / `COMMIT`, upsert sees rows staged earlier in the same transaction
+  (including on `SHARED` tables).
+
+`DO UPDATE SET` assignments support:
+
+- `EXCLUDED.<column>` — value from the attempted insert
+- literals such as `'published'`, `42`, or `NULL`
+
+Limits:
+
+- Single-column primary key only; conflict target must be that PK column.
+- Literal `VALUES` only — `INSERT ... SELECT` upserts are not supported on this path.
+- `ON CONFLICT DO NOTHING`, `ON CONFLICT ON CONSTRAINT`, `ON CONFLICT DO UPDATE WHERE`, and
+  tuple assignments in `DO UPDATE SET` are not supported.
+- `system.*` tables are rejected.
+
+### `RETURNING` on upsert
+
+Add `RETURNING` to upsert to get back the inserted or updated row instead of only
+`rows_affected`:
+
+```sql
+INSERT INTO [<namespace>.]<table> (<columns>) VALUES (<values>)
+ON CONFLICT (<primary_key_column>) DO UPDATE SET <assignments>
+RETURNING <column> [, <column> AS <alias> ...];
+```
+
+Response shape over `POST /v1/api/sql`:
+
+- Without `RETURNING` → insert result with `rows_affected`.
+- With `RETURNING` → query result with `schema`, `rows`, and `row_count` (same as `SELECT`).
+
+Not supported yet:
+
+- Plain `INSERT ... RETURNING` without `ON CONFLICT`.
+- `UPDATE ... RETURNING` and `DELETE ... RETURNING`.
 
 ## Execute As
 

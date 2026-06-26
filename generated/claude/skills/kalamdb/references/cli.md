@@ -44,10 +44,11 @@ Project workflow (require `kalam.toml`):
 - `kalam schema gen` / `kalam schema pull`
 - `kalam migration create` / `kalam migration status` / `kalam migration seal`
 - `kalam db migrate`
+- `kalam db reset [--yes]`
 - `kalam status`
-- `kalam deploy`
+- `kalam deploy` — **not supported yet**
 
-Project workflow (split for tokens): [cli-init.md](cli-init.md), [cli-dev.md](cli-dev.md), [cli-lifecycle.md](cli-lifecycle.md).
+Project workflow (split for tokens): [cli-init.md](cli-init.md), [cli-dev.md](cli-dev.md), [cli-lifecycle.md](cli-lifecycle.md), [kalam-toml.md](kalam-toml.md).
 
 ## Important Flags
 

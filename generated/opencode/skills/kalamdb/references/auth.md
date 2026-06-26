@@ -48,6 +48,7 @@ Always verify elevated role claims against persisted local user state before pri
 - JWT secrets must be non-default and at least 32 characters for non-localhost deployment.
 - Auth cookies must be `HttpOnly`; use `SameSite=Strict` and `Secure` in production.
 - `auth.local.enabled = false` disables password login and password setup server-side.
+- Local password policy lives under `[auth.local]`: `bcrypt_cost`, `min_password_length`, `max_password_length`, `enforce_password_complexity`.
 
 ## OIDC
 

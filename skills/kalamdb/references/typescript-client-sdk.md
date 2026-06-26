@@ -70,7 +70,7 @@ await client.initialize(); // optional; first query/live call auto-inits
 5. **Register connection error handler in production** — otherwise the SDK logs failures but your UI may look “stuck”.
 6. **USER tables are auth-scoped** — never add fake `WHERE user_id = ?` filters. Use `executeAsUser()` only for authorized service delegation.
 7. **Live subscription SQL is strict on `client.live()`** — use `SELECT ... FROM ... WHERE ...` only (no `ORDER BY` / `LIMIT` / joins). See Live section below.
-8. **FILE uploads use `queryWithFiles`** — placeholders `FILE("name")` in SQL; multipart field `file:name`. See [typescript-files.md](typescript-files.md).
+8. **FILE uploads** — with Drizzle, pass `kalamFile(name, blob)` in `.values()` / `.set()` and let `kalamDriver()` route to multipart SQL. For raw SQL, use `queryWithFiles` with `FILE("name")` placeholders; multipart field `file:name`. See [typescript-files.md](typescript-files.md).
 9. **FILE reads use URLs, not a download helper** — TS has no `downloadFile()` like Rust/Dart. Use `queryRows` + `row.file()` or `KalamCellValue.asFileUrl()`.
 10. **Set `namespace` on the client** when apps use unqualified table names or need consistent file URL context.
 

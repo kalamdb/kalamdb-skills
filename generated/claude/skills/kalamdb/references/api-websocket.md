@@ -62,6 +62,22 @@ Multipart FILE uploads use SQL placeholders like `FILE("contract")` and multipar
 
 Success response includes `status`, `results`, and `took`. Each result may contain `schema`, `rows`, `row_count`, `message`, and always `as_user`.
 
+DML result shapes:
+
+- `SELECT` and `INSERT ... ON CONFLICT ... DO UPDATE ... RETURNING` return `schema`, `rows`, and
+  `row_count` in `results[]`.
+- Plain `INSERT`, `UPDATE`, and `DELETE` without `RETURNING` return an affected-row count instead
+  of data rows. Upsert without `RETURNING` follows the insert result shape.
+
+Example upsert with returned rows:
+
+```sql
+INSERT INTO app.items (id, name)
+VALUES (1, 'beta')
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name
+RETURNING id, name;
+```
+
 Errors include stable `error.code` values such as `INVALID_SQL`, `TABLE_NOT_FOUND`, `PERMISSION_DENIED`, `NOT_LEADER`, `FILE_TOO_LARGE`, `MISSING_FILE`, and `INTERNAL_ERROR`.
 
 ## Table Transfer API

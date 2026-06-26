@@ -81,3 +81,20 @@ Production artifacts: `pg_kalam.so`, `pg_kalam.control`, and `pg_kalam--*.sql`.
 - PostgreSQL `JSON` and `JSONB` map to KalamDB `JSON`.
 - `FILE` in KalamDB is mirrored locally as PostgreSQL `JSONB` containing a `FileRef` payload.
 - KalamDB supports common PostgreSQL-style JSON operators `->`, `->>`, and `?`; do not assume full `jsonb` operator parity.
+
+## Upsert And `RETURNING`
+
+The FDW modify path does not expose PostgreSQL-native `ON CONFLICT` or `RETURNING` on foreign
+tables. Send upsert and `RETURNING` statements through `kalam_exec(...)` so KalamDB executes
+them on the server:
+
+```sql
+SELECT kalam_exec($$
+  INSERT INTO app.items (id, name)
+  VALUES (1, 'beta')
+  ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name
+  RETURNING id, name
+$$);
+```
+
+See [sql-syntax.md](sql-syntax.md) for upsert and `RETURNING` rules and limits.

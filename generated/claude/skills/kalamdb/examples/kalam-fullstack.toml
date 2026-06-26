@@ -1,0 +1,38 @@
+# Full-stack kalam.toml — React frontend + topic agent under one `kalam dev` session.
+# Start from `kalam init`, then merge these additions. See full-stack-react-agent.md.
+
+[project]
+name = "my-chat"
+default_env = "dev"
+package_manager = "pnpm"
+
+[connection.dev]
+url = "http://localhost:2900"
+namespace = "my_chat"
+
+[schema]
+mode = "sql"
+path = "schema.sql"
+watch = true
+languages = ["typescript"]
+
+[schema.targets.typescript]
+output = "src/generated/kalam.ts"
+
+[migrations]
+auto_create = true
+
+[dev]
+auto_start_db = true
+apply_schema = true
+generate_types = true
+watch = true
+
+# kalam dev supervises all three: DB server, Vite React app, and topic agent.
+[dev.processes]
+app = "pnpm dev"
+agent = "pnpm agent"
+
+[logging]
+file = true
+capture_process_output = true

@@ -2,7 +2,7 @@
 
 ```ts
 import { Auth, createClient } from '@kalamdb/client';
-import { file, kTable, kalamDriver, liveTable } from '@kalamdb/orm';
+import { file, kalamFile, kTable, kalamDriver, liveTable } from '@kalamdb/orm';
 import { bigint, text, timestamp } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pg-proxy';
 
@@ -22,6 +22,14 @@ const client = createClient({
 
 const db = drizzle(kalamDriver(client));
 const rows = await db.select().from(messages).limit(20);
+
+// FILE upload through normal Drizzle insert (driver routes to multipart SQL):
+// await db.insert(messages).values({
+//   room: 'main',
+//   role: 'user',
+//   body: 'See attachment',
+//   attachment: kalamFile('attachment', selectedFile),
+// });
 
 const stop = await liveTable(client, messages, (liveRows) => {
   console.log(liveRows.length);

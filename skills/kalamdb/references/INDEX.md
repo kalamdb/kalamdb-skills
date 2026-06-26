@@ -8,8 +8,10 @@ One-line map. Agents: pick **one** file from [SKILL.md](../SKILL.md) task router
 |------|-----------|
 | [cli.md](cli.md) | Interactive SQL shell, login, flags, env vars |
 | [cli-init.md](cli-init.md) | `kalam init`, scaffolding, `--yes` automation |
+| [cli-templates.md](cli-templates.md) | Built-in init templates — **pick before building from scratch** |
 | [cli-dev.md](cli-dev.md) | `kalam dev`, local server, schema watch, processes |
-| [cli-lifecycle.md](cli-lifecycle.md) | `kalam link`, schema gen, migrations, deploy, `kalam.toml` |
+| [cli-lifecycle.md](cli-lifecycle.md) | `kalam link`, schema gen, migrations, status |
+| [kalam-toml.md](kalam-toml.md) | Full `kalam.toml` field reference |
 
 ## SDKs
 
@@ -34,7 +36,7 @@ One-line map. Agents: pick **one** file from [SKILL.md](../SKILL.md) task router
 | [operations.md](operations.md) | Cluster, ops runbooks |
 | [server-configuration.md](server-configuration.md) | `server.toml` keys |
 | [auth.md](auth.md) | JWT, RBAC, login flows |
-| [sql-syntax.md](sql-syntax.md) | Kalam SQL dialect |
+| [sql-syntax.md](sql-syntax.md) | Kalam SQL dialect, upsert, `RETURNING` |
 | [api-websocket.md](api-websocket.md) | HTTP/WS protocol |
 | [pg-extension.md](pg-extension.md) | `pg_kalam` FDW |
 | [performance.md](performance.md) | Perf/security guardrails |

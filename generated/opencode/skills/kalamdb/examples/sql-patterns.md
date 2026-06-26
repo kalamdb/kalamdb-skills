@@ -23,6 +23,43 @@ ORDER BY created_at ASC
 LIMIT 100;
 ```
 
+## Upsert With RETURNING
+
+```sql
+CREATE NAMESPACE IF NOT EXISTS app;
+
+CREATE TABLE app.items (
+  id BIGINT PRIMARY KEY,
+  name TEXT NOT NULL
+) WITH (TYPE = 'SHARED', STORAGE_ID = 'local');
+
+INSERT INTO app.items (id, name) VALUES (1, 'alpha');
+
+-- Update existing row and return the final values
+INSERT INTO app.items (id, name) VALUES (1, 'beta')
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name
+RETURNING id, name AS returned_name;
+
+-- Insert when the primary key is missing
+INSERT INTO app.items (id, name) VALUES (42, 'gamma')
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name
+RETURNING id, name;
+```
+
+## Upsert Inside A Transaction
+
+```sql
+BEGIN;
+
+INSERT INTO app.items (id, name) VALUES (2, 'alpha');
+
+INSERT INTO app.items (id, name) VALUES (2, 'gamma')
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name
+RETURNING id, name;
+
+COMMIT;
+```
+
 ## Topic Source And Consumer
 
 ```sql

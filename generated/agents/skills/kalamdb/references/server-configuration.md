@@ -96,9 +96,9 @@ Important CORS rule: do not combine wildcard origins with credentialed browser a
 
 Canonical auth config lives under `[auth]`. Older local files may still deserialize the legacy authentication table, but new examples and docs should use `[auth]`.
 
-`[auth]` keys: `root_password`, `bcrypt_cost`, `min_password_length`, `max_password_length`, `jwt_expiry_hours`, `cookie_secure`, `enforce_password_complexity`, `jwt_secret`, `allow_remote_setup`, `jwt_trusted_issuers`, `pg_auth_token`.
+`[auth]` keys: `root_password`, `jwt_expiry_hours`, `cookie_secure`, `jwt_secret`, `allow_remote_setup`, `jwt_trusted_issuers`, `pg_auth_token`.
 
-`[auth.local]`: `enabled`. When false, password login and password setup are rejected server-side.
+`[auth.local]`: `enabled`, `bcrypt_cost`, `min_password_length`, `max_password_length`, `enforce_password_complexity`. When `enabled = false`, password login and password setup are rejected server-side.
 
 `[auth.oidc]`: `enabled`, `display_name`, `issuer`, `client_id`, optional `client_secret`, `scopes`, `auto_provision`, `default_role`, `broker_device_flow_enabled`, optional `device_authorization_endpoint`. KalamDB supports one configured OIDC provider per server. Use the IdP redirect URIs `/ui/oauth/callback` for Admin UI browser login and `http://127.0.0.1:8787/callback` for CLI browser login.
 

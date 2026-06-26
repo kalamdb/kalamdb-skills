@@ -16,7 +16,25 @@ CREATE TABLE app.users (
 
 Stored values are JSON `FileRef` objects (`id`, `sub`, `name`, `size`, `mime`, `sha256`, …).
 
-## Upload (`queryWithFiles`)
+## Upload through Drizzle (`@kalamdb/orm`)
+
+Prefer this when you already use Drizzle builders:
+
+```typescript
+import { drizzle } from 'drizzle-orm/pg-proxy';
+import { kalamDriver, kalamFile } from '@kalamdb/orm';
+
+const db = drizzle(kalamDriver(client));
+
+await db.insert(users).values({
+  name: 'Alice',
+  avatar: kalamFile('avatar', file),
+});
+```
+
+`kalamDriver()` detects upload values and routes to multipart `queryWithFiles()` automatically. Use the same `kalamFile(...)` value in `.onConflictDoUpdate().set()` when upserting FILE columns.
+
+## Upload with raw SQL (`queryWithFiles`)
 
 Use `FILE("placeholder")` in SQL. Map placeholders to `File | Blob` keys. Multipart part names are `file:<key>`.
 
@@ -140,7 +158,7 @@ Auth: download URLs target `/v1/api/files/...` and require the same credentials 
 
 | Mistake | Fix |
 |---------|-----|
-| Using `query()` for FILE upload | Use `queryWithFiles` + `FILE("name")` |
+| Using `query()` for FILE upload | Use `kalamFile()` with Drizzle or `queryWithFiles` + `FILE("name")` for raw SQL |
 | Expecting `downloadFile()` in TS | Use `downloadUrl()` / `fetch` |
 | Ignoring `queryWithFiles` throw | Wrap in try/catch |
 | Assuming `queryOne` surfaces SQL errors | Check `query()` `status` first |

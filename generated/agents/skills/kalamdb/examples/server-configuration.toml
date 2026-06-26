@@ -50,13 +50,14 @@ allow_credentials = true
 [auth]
 jwt_secret = "replace-with-a-32-character-or-longer-secret"
 allow_remote_setup = false
-bcrypt_cost = 12
-min_password_length = 8
-max_password_length = 72
 cookie_secure = false
 
 [auth.local]
 enabled = true
+bcrypt_cost = 12
+min_password_length = 8
+max_password_length = 72
+enforce_password_complexity = false
 
 [auth.oidc]
 enabled = false

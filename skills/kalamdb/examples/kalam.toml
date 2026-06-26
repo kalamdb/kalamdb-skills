@@ -1,0 +1,38 @@
+# Example kalam.toml — TypeScript + local server (matches kalam init scaffold)
+# See references/kalam-toml.md for the full field reference.
+
+[project]
+name = "my-app"
+default_env = "dev"
+package_manager = "pnpm"
+
+[connection.dev]
+url = "http://localhost:2900"
+namespace = "my_app"
+
+[schema]
+mode = "sql"
+path = "schema.sql"
+watch = true
+languages = ["typescript"]
+
+[schema.targets.typescript]
+output = "src/generated/kalam.ts"
+
+[migrations]
+auto_create = true
+
+[dev]
+auto_start_db = true
+apply_schema = true
+generate_types = true
+watch = true
+
+# kalam dev starts these alongside the DB server and schema pipeline.
+# Logs are prefixed with the key name ([app]) vs [cli] and [server].
+[dev.processes]
+app = "pnpm dev"
+
+[logging]
+file = true
+capture_process_output = true
