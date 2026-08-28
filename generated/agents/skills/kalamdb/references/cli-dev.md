@@ -4,6 +4,18 @@ Long-running local dev orchestrator. Blocks until `Ctrl+C`. Requires `kalam.toml
 
 Sources: `cli/DEV.md`, `cli/src/workflow/dev/orchestrator.rs`.
 
+## Agent Mode
+
+```bash
+kalam dev --agent
+```
+
+Runs the local KalamDB development environment in deterministic, non-interactive mode optimized for AI coding agents and automation.
+
+`--agent` never waits for stdin. It auto-downloads a missing compatible server, reuses a healthy server before resolving a local binary, auto-applies ordinary `schema.sql` changes, and prints compact `KALAM_*` events. Destructive changes return `KALAM_ERROR code=DESTRUCTIVE_SCHEMA_CHANGE` unless `--force` is also passed.
+
+Preferred agent workflow: `kalam init --yes` → `kalam dev --agent` (or `kalam dev start --agent`) → `kalam -c "<SQL>" --json`.
+
 ## Flags
 
 | Flag | Purpose |
@@ -11,8 +23,22 @@ Sources: `cli/DEV.md`, `cli/src/workflow/dev/orchestrator.rs`.
 | `--project-dir` | Project root |
 | `--env` | Target env (default from `[project].default_env`) |
 | `--namespace` | Override namespace |
-| `--force` | Skip draft prompts; retry paused schema pipeline once at startup |
+| `--force` | Skip draft prompts in human mode; allow destructive apply in `--agent` |
+| `--agent` | Deterministic non-interactive agent/automation mode |
 | `--progress` | Deprecated — ignored |
+
+## Background session
+
+```bash
+kalam dev start --agent
+kalam dev status
+kalam dev logs [--follow] [-n N]
+kalam dev stop
+```
+
+Foreground `kalam dev` is unchanged. `start` spawns a detached `kalam dev --agent` child (never recursive `dev start`), waits for `KALAM_READY`, and writes `kalam/cli/dev.session.json`. It reuses a live session instead of starting a second one. `status`/`stop` are idempotent. This is a PID/session file, not a machine-wide daemon.
+
+Compact events: `KALAM_DEV_STARTED`, `KALAM_DEV_REUSED`, `KALAM_DEV_STATUS`, `KALAM_DEV_STOPPED`. Startup failures may surface the child's `KALAM_ERROR` or `DEV_START_FAILED`.
 
 ## Behavior
 
@@ -52,7 +78,7 @@ kalam dev --env prod   # caution: prod-linked config
 
 ## Agent Rules
 
-- Prefer `kalam dev` over manual server + watchers after init.
+- Prefer `kalam dev --agent` or `kalam dev start --agent` over interactive `kalam dev` from coding-agent shells.
 - Do not hand-edit `src/generated/` or `lib/generated/`; let watch or `kalam schema gen` refresh.
 - Config: [kalam-toml.md](kalam-toml.md). Migrations: [cli-lifecycle.md](cli-lifecycle.md).
 
@@ -60,7 +86,9 @@ kalam dev --env prod   # caution: prod-linked config
 
 | Error | Fix |
 |-------|-----|
-| `kalamdb-server not found` | Install binary or `KALAMDB_SERVER_BIN` |
+| `kalamdb-server not found` | Install binary, set `KALAMDB_SERVER_BIN`, or use `kalam dev --agent` to auto-download |
+| `KALAM_ERROR code=DESTRUCTIVE_SCHEMA_CHANGE` | Rerun `kalam dev --force` only if you intend to rebuild development data |
+| `KALAM_ERROR code=DEV_START_FAILED` | Inspect `kalam dev logs`; retry `kalam dev start --agent` |
 | `schema pipeline paused` | Fix error, then `kalam dev --force` |
 | `migration failed previously` after reset | Namespace not dropped — run `kalam db reset --yes` or `kalam migration retry` |
 | Empty `[dev.processes].*` command | Fix command in `kalam.toml` |

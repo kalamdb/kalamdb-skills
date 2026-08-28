@@ -8,7 +8,11 @@
 |--------------|----------|
 | `simple-live` | Default. Node ORM live demo — not React. Good baseline to extend. |
 
-More templates will appear here as they ship under `cli/templates/typescript/<id>/`.
+## Current Built-in Templates (Dart / Flutter)
+
+| `--template` | Use when |
+|--------------|----------|
+| `simple-live` | Default for `--languages dart`. Flutter local-first starter with `kalam_sync`. |
 
 ## Non-Interactive Init
 
@@ -20,6 +24,17 @@ kalam init --yes \
   --server-mode local \
   --package-manager pnpm
 kalam dev
+```
+
+Dart / Flutter:
+
+```bash
+kalam init --yes \
+  --name my-app \
+  --languages dart \
+  --template simple-live \
+  --server-mode local
+kalam schema gen --languages dart
 ```
 
 ## Full-Stack React + Agent

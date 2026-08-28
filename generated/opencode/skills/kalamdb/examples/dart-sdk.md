@@ -1,5 +1,7 @@
 # Dart SDK Example
 
+Prefer [`kalam_sync`](../references/dart-sync.md) for new Flutter apps (`kalam init --languages dart`). Use `kalam_link` when you only need HTTP SQL and live rows.
+
 ```dart
 import 'dart:async';
 

@@ -1,6 +1,6 @@
 ---
 name: kalamdb
-description: KalamDB router skill — open ONE targeted reference after routing. Covers CLI (kalam init/dev), Rust/Dart/TypeScript SDKs, SQL, auth, ops, PG extension. Use for KalamDB contributor or app integration work.
+description: KalamDB router skill — open ONE targeted reference after routing. Covers CLI (kalam init/dev), Rust/Dart/TypeScript SDKs, SQL, auth, ops, PG extension, and PostgreSQL wire. Use for KalamDB contributor or app integration work.
 license: Apache-2.0
 compatibility: codex, claude-code, opencode, agent-skills
 metadata:
@@ -30,6 +30,7 @@ Router only. **Do not preload all references.**
 - **Template-first:** for new apps, pick the closest `kalam init --template` scaffold and extend it — do not build equivalent boilerplate from scratch when a template exists. Catalog: [cli-templates.md](references/cli-templates.md).
 - **Schema-first:** for app work, edit `schema.sql` before writing app/domain code, run generation, and treat generated SDK/ORM types as source of truth. Do not hand-write duplicate row models first.
 - **AI assistant chat:** always include visible thinking/typing and frontend token streaming. Use direct `CREATE USER TABLE` for conversation/message rows, direct `CREATE STREAM TABLE` for token rows, and a topic/source from user message inserts for the agent. Do not add an app `users` table or fake `user_id` tenancy columns for authenticated USER-table data; KalamDB auth already supplies the user identity.
+- PostgreSQL extension and PostgreSQL wire sessions use the shared backend session manager; HTTP SQL remains request-scoped. Do not add transport-specific transaction authorities or duplicate metadata stores for client catalog compatibility.
 
 ## Task Router
 
@@ -43,6 +44,7 @@ Router only. **Do not preload all references.**
 | SQL shell, `kalam login`, flags | [cli.md](references/cli.md) | — | [cli-workflows.md](examples/cli-workflows.md) |
 | Rust app / `kalam-client` | [rust-sdk.md](references/rust-sdk.md) | [rust-sdk-api.md](references/rust-sdk-api.md) | [rust-sdk.md](examples/rust-sdk.md) |
 | Flutter / Dart / `kalam_link` | [dart-sdk.md](references/dart-sdk.md) | [dart-sdk-api.md](references/dart-sdk-api.md) | [dart-sdk.md](examples/dart-sdk.md) |
+| Flutter local-first / `kalam_sync` | [dart-sync.md](references/dart-sync.md) | [dart-sync-api.md](references/dart-sync-api.md) | [dart-sync.md](examples/dart-sync.md) |
 | TypeScript client | [typescript-client-sdk.md](references/typescript-client-sdk.md) | [typescript-client-api.md](references/typescript-client-api.md) | [typescript-client.md](examples/typescript-client.md) |
 | TypeScript FILE columns | [typescript-files.md](references/typescript-files.md) | — | [typescript-files.md](examples/typescript-files.md) |
 | TypeScript ORM / schema gen | [typescript-orm.md](references/typescript-orm.md) | — | [typescript-orm.md](examples/typescript-orm.md) |
@@ -55,6 +57,7 @@ Router only. **Do not preload all references.**
 | Architecture / crate map | [architecture.md](references/architecture.md) | — | — |
 | Ops / cluster | [operations.md](references/operations.md) | — | — |
 | PostgreSQL extension | [pg-extension.md](references/pg-extension.md) | — | [pg-extension.md](examples/pg-extension.md) |
+| PostgreSQL wire / client catalog / `pg_catalog` | [server-configuration.md](references/server-configuration.md) + [architecture.md](references/architecture.md) | — | — |
 | Tests / benchmarks | [testing.md](references/testing.md) | — | — |
 | Debugging | [troubleshooting.md](references/troubleshooting.md) | — | — |
 | Choosing integration surface | [integrations.md](references/integrations.md) | — | — |
@@ -62,13 +65,23 @@ Router only. **Do not preload all references.**
 
 ## Quick Commands
 
+Preferred coding-agent workflow:
+
+```bash
+kalam init --yes
+kalam dev --agent
+kalam -c "<SQL>" --json
+```
+
+Inspect live schema with `information_schema` rather than inferring it from generated code.
+
 ```bash
 cd backend && cargo run --bin kalamdb-server
 cd cli && cargo build --release && cargo test --test smoke
 cargo nextest run
 ```
 
-New app: pick a [template](references/cli-templates.md) → `kalam init --template <id>` → `kalam dev`. Extend the scaffold; avoid rebuilding from scratch.
+New app: pick a [template](references/cli-templates.md) → `kalam init --yes --template <id>` → `kalam dev --agent`. Extend the scaffold; avoid rebuilding from scratch.
 
 ## Repo-Local Deep Skills
 

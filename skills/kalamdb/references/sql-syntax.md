@@ -37,7 +37,6 @@ CREATE [USER|SHARED|STREAM] TABLE [IF NOT EXISTS] [<namespace>.]<table_name> (
   USE_USER_STORAGE = <TRUE|FALSE>,
   FLUSH_POLICY = '<rows:N|interval:N|rows:N,interval:N>',
   TTL_SECONDS = <seconds>,
-  ACCESS_LEVEL = '<PUBLIC|PRIVATE|RESTRICTED|DBA>',
   EVICTION_STRATEGY = '<time_based|size_based|hybrid>',
   MAX_STREAM_SIZE_BYTES = <bytes>,
   COMPRESSION = '<none|snappy|zstd>'
@@ -51,7 +50,9 @@ CREATE USER TABLE app.messages (...);
 CREATE STREAM TABLE app.message_streams (...) WITH (TTL_SECONDS = 300);
 ```
 
-Table options are type-specific: `USER` supports `STORAGE_ID`, `USE_USER_STORAGE`, `FLUSH_POLICY`, and `COMPRESSION`; `SHARED` supports `STORAGE_ID`, `ACCESS_LEVEL`, `FLUSH_POLICY`, and `COMPRESSION`; `STREAM` supports `TTL_SECONDS`, `EVICTION_STRATEGY`, and `MAX_STREAM_SIZE_BYTES`. `COMPRESSION` is a cold-tier Parquet setting for `USER` and `SHARED` tables only; `none` writes uncompressed Parquet, `snappy` is the default, and `zstd` uses Zstandard level 1.
+Table options are type-specific: `USER` supports `STORAGE_ID`, `USE_USER_STORAGE`, `FLUSH_POLICY`, and `COMPRESSION`; `SHARED` supports `STORAGE_ID`, `FLUSH_POLICY`, and `COMPRESSION`; `STREAM` supports `TTL_SECONDS`, `EVICTION_STRATEGY`, and `MAX_STREAM_SIZE_BYTES`. `COMPRESSION` is a cold-tier Parquet setting for `USER` and `SHARED` tables only; `none` writes uncompressed Parquet, `snappy` is the default, and `zstd` uses Zstandard level 1.
+
+Shared tables always use FORCE row-level security. Creating a shared table without `CREATE POLICY` is default-deny for User and Service. `ACCESS_LEVEL` is not a table option. Grant rows with `CREATE POLICY`. System and DBA bypass RLS.
 
 DDL:
 
@@ -61,11 +62,38 @@ ALTER TABLE [<namespace>.]<table> DROP COLUMN <name>;
 ALTER TABLE [<namespace>.]<table> MODIFY COLUMN <name> <type> [NOT NULL|NULL];
 ALTER TABLE [<namespace>.]<table> SET TBLPROPERTIES (<table_option> = <value>, ...);
 DROP [USER|SHARED|STREAM] TABLE [IF EXISTS] [<namespace>.]<table>;
+CREATE POLICY <name> ON [<namespace>.]<table>
+  FOR {ALL|SELECT|INSERT|UPDATE|DELETE}
+  TO {PUBLIC|user|service}
+  USING (<boolean_expr>)
+  [WITH CHECK (<boolean_expr>)];
+ALTER POLICY <name> ON [<namespace>.]<table> USING (<boolean_expr>);
+DROP POLICY [IF EXISTS] <name> ON [<namespace>.]<table>;
 CREATE VIEW [<namespace>.]<view> AS <select_query>;
 SHOW TABLES [IN [NAMESPACE] <namespace>];
 DESCRIBE TABLE [<namespace>.]<table> [HISTORY];
+DESCRIBE [<namespace>.]<table>;   -- admin meta; Kalam types via information_schema
+DESC [<namespace>.]<table>;
 SHOW STATS FOR TABLE [<namespace>.]<table>;
 ```
+
+Schema and plan diagnostics (full reference: KalamSite `/docs/server/sql-reference/diagnostics`):
+
+```sql
+-- Native DESCRIBE TABLE: column_id, is_primary_key, schema_version, Kalam data_type, ...
+DESCRIBE TABLE app.messages;
+
+-- EXPLAIN keyword order: ANALYZE before VERBOSE (not EXPLAIN VERBOSE ANALYZE)
+EXPLAIN SELECT id FROM app.messages WHERE user_id = 'alice' LIMIT 10;
+EXPLAIN ANALYZE SELECT id FROM app.messages WHERE user_id = 'alice' LIMIT 10;
+EXPLAIN ANALYZE VERBOSE SELECT id FROM app.messages WHERE user_id = 'alice' LIMIT 10;
+```
+
+- `DESCRIBE TABLE` — elevated role; rich schema-registry columns.
+- `DESCRIBE <table>` / `DESC <table>` — DBA/System meta command; rewritten to `information_schema.columns` with `kdb_data_type`.
+- `EXPLAIN` — DBA/System; returns `logical_plan` + `physical_plan` rows.
+- `EXPLAIN ANALYZE` — executes query; returns `Plan with Metrics` plus hot/cold scan metrics on `DeferredBatchExec` (`hot_rows_scanned`, `cold_rows_scanned`, `cold_files_scanned`, …).
+- `EXPLAIN ANALYZE VERBOSE` — adds `Plan with Full Metrics`, `Output Rows`, `Duration` rows.
 
 ## DML
 

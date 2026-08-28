@@ -29,10 +29,14 @@ my-app/
 │   └── server/server.toml   # local server mode
 ├── src/generated/kalam.ts   # if typescript
 ├── package.json             # if typescript template selected
+├── pubspec.yaml             # if dart
+├── lib/main.dart            # dart simple-live
 └── lib/generated/kalam.dart # if dart
 ```
 
 TypeScript templates (e.g. `simple-live`) add app source, starter `schema.sql`, and `package.json` with a `dev` script.
+
+Dart/Flutter `simple-live` adds `pubspec.yaml`, `lib/main.dart` (`kalam_sync`), and generates `lib/generated/kalam.dart` from `schema.sql`.
 
 ## `[dev.processes]` on init
 
@@ -45,11 +49,13 @@ When TypeScript is selected, init writes `[dev.processes].app` automatically:
 | yarn | `yarn dev` |
 | bun | `bun run dev` |
 
-Future templates may add more keys (e.g. `agent`). Dart-only projects get a commented example instead. Full config: [kalam-toml.md](kalam-toml.md).
+Dart-only projects write `app = "flutter run"` (no `package_manager` field). Mixed TypeScript + Dart keeps the TypeScript `app` command. Future templates may add more keys (e.g. `agent`). Full config: [kalam-toml.md](kalam-toml.md).
 
 ## Interactive (TTY)
 
 Prompts: name → schema mode → languages → **template** → package manager (if TS) → server mode → URL (if remote).
+
+Language menu includes **TypeScript** and **Dart / Flutter**. `--languages flutter` is accepted and stored as `dart`.
 
 Menus: `Up`/`Down`, `Space` (multi-select), `Enter`, `Esc`.
 
@@ -59,7 +65,7 @@ Menus: `Up`/`Down`, `Space` (multi-select), `Enter`, `Esc`.
 |------|---------|
 | `--name` | Project + default namespace |
 | `--schema-mode sql\|remote` | Prefer `sql`; `remote` rejected at init today |
-| `--languages typescript,dart` | Generation targets |
+| `--languages typescript,dart` | Generation targets (`ts` and `flutter` aliases accepted) |
 | `--template <id>` | Built-in template id — see [cli-templates.md](cli-templates.md) |
 | `--package-manager npm\|pnpm\|yarn\|bun` | Required for TS when multiple on PATH |
 | `--server-mode local\|remote` | Whether `kalam dev` starts server |
@@ -70,6 +76,8 @@ Menus: `Up`/`Down`, `Space` (multi-select), `Enter`, `Esc`.
 ## `--yes` Defaults
 
 `sql` schema, `typescript`, template `simple-live`, `local` server, `http://localhost:2900`, name = cwd or `my-app`. Package manager: invoking tool from `npm_config_user_agent` when present, else first of pnpm → bun → yarn → npm on PATH.
+
+Dart-only `--yes` (`--languages dart` or `flutter`) still uses template `simple-live`, writes `app = "flutter run"`, and skips JavaScript package-manager detection. If `flutter` is on `PATH`, init runs `flutter create . --platforms macos,web` then `flutter pub get` (best-effort; missing Flutter does not fail init).
 
 Override the template explicitly when a better match exists:
 
@@ -84,6 +92,7 @@ kalam init
 kalam init --yes --name my-app --schema-mode sql --languages typescript --template simple-live --server-mode local
 kalam init --yes --name my-app --languages typescript --template simple-live --server-mode remote \
   --server-url http://localhost:2900 --package-manager pnpm
+kalam init --yes --name my-app --schema-mode sql --languages dart --template simple-live --server-mode local
 ```
 
 ## Full-Stack React + Agent
@@ -97,7 +106,7 @@ Until then: init with the closest template, then follow [full-stack-react-agent.
 - **Template-first:** [cli-templates.md](cli-templates.md) before writing boilerplate.
 - CI/non-TTY: always `--yes` + every flag explicit, including `--template`.
 - TS needs npm/pnpm/yarn/bun on `PATH` unless deps installed manually after.
-- Next step: [cli-dev.md](cli-dev.md). Config reference: [kalam-toml.md](kalam-toml.md).
+- Next step: `kalam dev --agent`. Details: [cli-dev.md](cli-dev.md). Config reference: [kalam-toml.md](kalam-toml.md).
 - New CLI template shipped → update [cli-templates.md](cli-templates.md) in the same change window.
 
 ## Errors

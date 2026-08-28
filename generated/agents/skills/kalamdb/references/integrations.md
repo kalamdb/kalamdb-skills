@@ -16,7 +16,7 @@ Do not hand-build project layout when a template already covers the stack. Manua
 - Node services: `@kalamdb/client`, `@kalamdb/orm`
 - Rust services and workers: `kalam-client` (`KalamLinkClient`)
 - Topic workers and agents: `@kalamdb/consumer` (TypeScript) or `kalam-client` with `consumer` feature (Rust)
-- Flutter/Dart apps: `kalam_link` (`KalamClient`)
+- Flutter/Dart: `kalam init --languages dart` then `kalam_sync` (`Kalam.open`). Live SQL only: `kalam_link` (`KalamClient`). Custom actions: `kalam_sync_generator`.
 - PostgreSQL: `pg_kalam` FDW and gRPC bridge
 - AI/chat examples: `examples/react-ai-chat`, `examples/chat-with-ai`, `examples/summarizer-agent`
 
@@ -39,4 +39,5 @@ Do not hand-build project layout when a template already covers the stack. Manua
 - `examples/summarizer-agent/`
 - `link/sdks/rust/examples/`
 - `link/sdks/dart/example/`
+- `link/sdks/dart/sync/example/`
 - `pg/local_test.sql`

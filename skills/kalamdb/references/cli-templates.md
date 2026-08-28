@@ -2,7 +2,7 @@
 
 Use this file when choosing or extending a project scaffold. **Always prefer an existing template over building from scratch.**
 
-Sources: `cli/templates/`, `cli/build.rs` (embedded at compile time), `cli/src/workflow/project/ts/init.rs`.
+Sources: `cli/templates/`, `cli/build.rs` (embedded at compile time), `cli/src/workflow/project/ts/init.rs`, `cli/src/workflow/project/dart/init.rs`.
 
 ## Agent Rule: Template First
 
@@ -39,11 +39,11 @@ Templates are embedded in the CLI at build time from `cli/templates/<language>/<
 | `react-agent` | React live UI + topic consumer agent | Full-stack chat, agents reacting to inserts | `app`, `agent` | Vite + `@kalamdb/react` + `@kalamdb/consumer` |
 -->
 
-### Dart
+### Dart / Flutter
 
-| Template id | Description | Good for | Notes |
-|-------------|-------------|----------|-------|
-| *(none yet)* | Dart language target generates `lib/generated/kalam.dart` | Flutter apps | Init scaffolds config + schema; no app template bundled today. |
+| Template id | Description | Good for | `[dev.processes]` | Notes |
+|-------------|-------------|----------|-------------------|-------|
+| `simple-live` | Flutter local-first starter with `kalam_sync` | Flutter apps, local-first lists | `app` → `flutter run` | Default for Dart-only `--yes`. Writes `pubspec.yaml`, `lib/main.dart`, and generates `lib/generated/kalam.dart`. |
 
 ### Scaffold (always applied)
 
@@ -56,7 +56,7 @@ Every init also applies the `scaffold/default` template: `kalam.toml`, `kalam/mi
 | Full-stack React + topic agent | Closest React/agent template when available; until then extend `simple-live` or follow [full-stack-react-agent.md](../examples/full-stack-react-agent.md) | `kalam dev` |
 | Browser live UI only | Future React templates; today: add Vite + `@kalamdb/react` to a TS init | [typescript-react.md](typescript-react.md) |
 | Node worker / agent only | `simple-live` or future worker templates | [typescript-consumer.md](typescript-consumer.md) |
-| Flutter / mobile | `kalam init --languages dart` + Dart SDK | [dart-sdk.md](dart-sdk.md) |
+| Flutter / mobile | `kalam init --languages dart --template simple-live` | [dart-sync.md](dart-sync.md) |
 | Minimal ORM demo | `simple-live` | `kalam dev` |
 
 When a dedicated template exists for the task, **use it** — do not duplicate its file layout manually.
@@ -74,7 +74,19 @@ kalam init --yes \
 kalam dev
 ```
 
-Interactive init prompts for template after language selection when TypeScript is included.
+Dart / Flutter:
+
+```bash
+kalam init --yes \
+  --name my-app \
+  --schema-mode sql \
+  --languages dart \
+  --template simple-live \
+  --server-mode local
+kalam schema gen --languages dart
+```
+
+Interactive init prompts for a TypeScript template when TypeScript is included, and for a Dart/Flutter template when Dart is the only language. Mixed TypeScript + Dart uses the TypeScript template plus a Dart overlay (`pubspec.yaml`, generated specs) without a second template prompt.
 
 ## What Templates Provide
 

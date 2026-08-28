@@ -21,6 +21,8 @@ One-line map. Agents: pick **one** file from [SKILL.md](../SKILL.md) task router
 | [rust-sdk-api.md](rust-sdk-api.md) | `KalamLinkClient` method tables |
 | [dart-sdk.md](dart-sdk.md) | Flutter boot rules, design notes |
 | [dart-sdk-api.md](dart-sdk-api.md) | `KalamClient` method tables |
+| [dart-sync.md](dart-sync.md) | `kalam_sync` local-first cache, tables, actions |
+| [dart-sync-api.md](dart-sync-api.md) | `Kalam` / table / action method tables |
 | [typescript-client-sdk.md](typescript-client-sdk.md) | `@kalamdb/client` overview, errors, live rules |
 | [typescript-client-api.md](typescript-client-api.md) | `KalamDBClient` method tables |
 | [typescript-files.md](typescript-files.md) | FILE upload/download, `queryWithFiles`, `KalamRow` |
@@ -36,7 +38,7 @@ One-line map. Agents: pick **one** file from [SKILL.md](../SKILL.md) task router
 | [operations.md](operations.md) | Cluster, ops runbooks |
 | [server-configuration.md](server-configuration.md) | `server.toml` keys |
 | [auth.md](auth.md) | JWT, RBAC, login flows |
-| [sql-syntax.md](sql-syntax.md) | Kalam SQL dialect, upsert, `RETURNING` |
+| [sql-syntax.md](sql-syntax.md) | Kalam SQL dialect, upsert, `RETURNING`, `DESCRIBE`, `EXPLAIN ANALYZE VERBOSE` |
 | [api-websocket.md](api-websocket.md) | HTTP/WS protocol |
 | [pg-extension.md](pg-extension.md) | `pg_kalam` FDW |
 | [performance.md](performance.md) | Perf/security guardrails |

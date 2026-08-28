@@ -72,5 +72,5 @@ Stop `kalam dev` before reset when deleting `kalam/server/` so RocksDB files are
 
 - Commit migration files with schema changes.
 - Use `kalam status` before prod migrate/debug.
-- Dart `kalam schema gen` is placeholder output today.
+- Dart `kalam schema gen` writes `KalamTableSpec` row codecs from `schema.sql` (no live server). Action codegen stays with `kalam_sync_generator`.
 - Do not reference `kalam deploy` as available.

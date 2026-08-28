@@ -6,7 +6,7 @@ Before scaffolding manually, check [cli-templates.md](../references/cli-template
 
 ```bash
 kalam init --yes --name my-app --languages typescript --template simple-live --server-mode local --package-manager pnpm
-kalam dev
+kalam dev --agent
 ```
 
 Extend the template (`schema.sql`, `src/`, `[dev.processes]`) instead of rebuilding the same layout. Quick catalog: [cli-templates.md](cli-templates.md).
@@ -32,7 +32,7 @@ kalam init --yes \
   --template simple-live \
   --server-mode local \
   --package-manager pnpm
-kalam dev
+kalam dev --agent
 ```
 
 Configure `[dev.processes]` with both frontend and agent when the template does not already:
@@ -52,13 +52,30 @@ mkdir my-app && cd my-app
 kalam init --yes \
   --name my-app \
   --schema-mode sql \
-  --languages typescript,dart \
+  --languages typescript \
   --server-mode local \
   --package-manager pnpm
-kalam dev
+kalam dev start --agent
+kalam -c "SELECT table_name FROM information_schema.tables LIMIT 20;" --json
+kalam dev stop
 ```
 
-Use `--yes` in CI, piped shells, or any non-TTY environment. Pass every choice explicitly.
+Use `--yes` in CI, piped shells, or any non-TTY environment. Pass every choice explicitly. `kalam dev --agent` is the preferred coding-agent development command when you can keep a foreground process; `kalam dev start --agent` detaches that same loop.
+
+## New Flutter / Dart Project
+
+```bash
+mkdir my-app && cd my-app
+kalam init --yes \
+  --name my-app \
+  --schema-mode sql \
+  --languages dart \
+  --template simple-live \
+  --server-mode local
+kalam schema gen --languages dart
+```
+
+`--languages flutter` is accepted and stored as `dart`. Init writes `pubspec.yaml`, `lib/main.dart`, `schema.sql`, and `lib/generated/kalam.dart` (`KalamTableSpec` codecs). If Flutter is on `PATH`, init also runs `flutter create` and `flutter pub get`.
 
 ## TypeScript App Against Existing Server
 

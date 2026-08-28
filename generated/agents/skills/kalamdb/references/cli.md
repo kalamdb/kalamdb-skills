@@ -67,7 +67,7 @@ Execution:
 - `--file <path>`
 - `--subscribe <sql>`
 - `--list-subscriptions`
-- `--format table|json|csv`, `--json`, `--csv`
+- `--format table|json|csv`, `--json`, `--csv` — table format expands multi-line `EXPLAIN` plans to terminal width; JSON for full plan text
 - timeout controls: `--timeout`, `--connection-timeout`, `--receive-timeout`, `--auth-timeout`, `--subscription-timeout`, `--initial-data-timeout`
 - timeout presets: `--fast-timeouts`, `--relaxed-timeouts`
 
@@ -79,7 +79,8 @@ Execution:
 - `\sessions`
 - `\format <table|json|csv>`
 - `\dt` / `\tables`
-- `\d <table>` / `\describe <table>`
+- `\d <table>` / `\describe <table>` — column list via `information_schema.columns` (Kalam `data_type`)
+- `\format <table|json|csv>` — use `json` for full `EXPLAIN` plan strings
 - `\as <user_id> <sql>`
 - `\stats` / `\metrics`
 - `\health`
@@ -125,15 +126,48 @@ Use `--interval 2s` or `--interval 500ms` for faster local loops.
 
 ```bash
 mkdir my-app && cd my-app
-kalam init
-kalam dev
+kalam init --yes
+kalam dev --agent
+# or, when a foreground process is inconvenient:
+# kalam dev start --agent
+# kalam dev status
+# kalam -c "SELECT 1;" --json
+# kalam dev stop
+kalam -c "SELECT table_schema, table_name FROM information_schema.tables;" --json
 ```
+
+## Database discovery
+
+Prefer querying KalamDB when you need the current schema or state.
+
+Use:
+
+```bash
+kalam -c "<SQL>" --json
+```
+
+Tables:
+
+```sql
+SELECT table_schema, table_name
+FROM information_schema.tables;
+```
+
+Columns:
+
+```sql
+SELECT table_schema, table_name, column_name, data_type, is_nullable, column_default
+FROM information_schema.columns
+ORDER BY table_schema, table_name, ordinal_position;
+```
+
+Do not infer the current database schema solely from generated application code if the live database is available. Prefer `LIMIT`, `WHERE`, `COUNT`, and `EXISTS` instead of dumping large tables.
 
 Non-interactive (CI/agents):
 
 ```bash
 kalam init --yes --name my-app --schema-mode sql --languages typescript --server-mode local
-kalam dev
+kalam dev --agent
 ```
 
 See [cli-init.md](cli-init.md) / [cli-dev.md](cli-dev.md) / [cli-lifecycle.md](cli-lifecycle.md) for workflow detail.

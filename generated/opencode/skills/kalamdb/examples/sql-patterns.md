@@ -75,6 +75,46 @@ CONSUME FROM chat.message_events GROUP 'worker' FROM EARLIEST LIMIT 25;
 ACK chat.message_events GROUP 'worker' PARTITION 0 UPTO OFFSET 24;
 ```
 
+## Shared Table Row-Level Security
+
+Shared tables are FORCE RLS. System/DBA bypass. User and Service are default-deny until a policy exists.
+
+```sql
+CREATE SHARED TABLE app.documents (
+  id TEXT PRIMARY KEY,
+  owner_id TEXT NOT NULL,
+  body TEXT
+);
+
+CREATE POLICY owner_read ON app.documents
+  FOR SELECT TO user
+  USING (owner_id = CURRENT_USER);
+
+CREATE POLICY owner_write ON app.documents
+  FOR ALL TO user
+  USING (owner_id = CURRENT_USER)
+  WITH CHECK (owner_id = CURRENT_USER);
+```
+
+Membership policies should use a covering primary key on `(principal, relation_key)`:
+
+```sql
+CREATE SHARED TABLE app.group_members (
+  user_id TEXT,
+  group_id TEXT,
+  PRIMARY KEY (user_id, group_id)
+);
+
+CREATE POLICY member_read ON app.messages
+  FOR SELECT TO user
+  USING (
+    group_id IN (
+      SELECT group_id FROM app.group_members
+      WHERE user_id = CURRENT_USER
+    )
+  );
+```
+
 ## Worker Write Boundary
 
 ```sql

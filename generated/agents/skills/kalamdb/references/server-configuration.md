@@ -40,7 +40,7 @@ Runtime config only belongs in TOML. Namespace and storage entity metadata belon
 
 `[storage.remote_timeouts]`: `request_timeout_secs`, `connect_timeout_secs`.
 
-`[storage.rocksdb]`: `block_cache_size`, `max_background_jobs`, `max_open_files`, `sync_writes`, `disable_wal`, `compact_on_startup`.
+`[storage.rocksdb]`: `memory_mode` (`compact` default: tiny cache/memtables; `auto`: size from host RAM, clamped), `block_cache_size`, `max_background_jobs`, `max_open_files`, `sync_writes`, `disable_wal`, `compact_on_startup`.
 
 `[storage.rocksdb.cf_profiles.<profile>]`: `write_buffer_size`, `max_write_buffers` for `system_meta`, `system_index`, `hot_data`, `hot_index`, and `raft`.
 

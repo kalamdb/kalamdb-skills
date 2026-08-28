@@ -100,7 +100,7 @@ Add environments with `kalam link --env <name> --url <url> --namespace <ns>`.
 | `mode` | yes | — | `sql` (local file) or `remote` |
 | `path` | when `mode = "sql"` | — | Schema source file (usually `schema.sql`) |
 | `watch` | no | `true` | Allow file-based schema watch (with `[dev].watch`) |
-| `languages` | no | `["typescript"]` | Codegen targets: `typescript`, `dart` |
+| `languages` | no | `["typescript"]` | Codegen targets: `typescript`, `dart` (`flutter` is accepted as an alias for `dart`) |
 
 Each language in `languages` requires `[schema.targets.<language>].output`.
 
@@ -134,7 +134,7 @@ Map of **process name → shell command**. Names become log prefixes (`[app]`, `
 |----------|--------|
 | Execution | Commands run from project root via system shell |
 | Init default | TypeScript init writes `app = "<pm> dev"` (`npm run dev`, `pnpm dev`, `yarn dev`, `bun run dev`) |
-| Dart-only | Section omitted; commented example in scaffold |
+| Dart-only | Init writes `app = "flutter run"`; `package_manager` is omitted |
 | Multiple processes | Add any number of keys |
 | Empty command | Validation error at `kalam dev` startup |
 

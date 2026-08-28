@@ -22,13 +22,16 @@ runApp(...);
 // connect() after first frame — not before runApp()
 ```
 
+Do not add server bootstrap/health-check helpers in Dart. Use CLI/`kalam init` and the server docs.
+
 ## Design
 
 - Rust bridge via `flutter_rust_bridge`; shared behavior with `kalam-client`.
 - UI: `live()` / `liveTable()`. Debug/raw: `liveEvents()`.
 - Live SQL: `SELECT ... FROM ... WHERE ...` only.
-- No topic consumers or server setup in Dart SDK.
-- Do not edit `lib/src/generated` or CLI `lib/generated/kalam.dart` (placeholder gen).
+- `kalam schema gen --languages dart` writes `KalamTableSpec` row codecs for `kalam_sync` from `schema.sql`. Custom action queues stay with `kalam_sync_generator` / `build_runner`.
+- Local-first Flutter: [dart-sync.md](dart-sync.md) (`Kalam.open`, `KalamScope`, table bindings).
+- Do not edit `lib/src/generated` or CLI `lib/generated/kalam.dart` (`kalam schema gen` output).
 
 ## Agent Rules
 
@@ -38,4 +41,4 @@ runApp(...);
 
 Example: [examples/dart-sdk.md](../examples/dart-sdk.md).
 
-Repo examples: `dart run example/simple-events/main.dart`, `example/chat-app/main.dart`.
+Repo examples: prefer `kalam init --languages dart --template simple-live`. Protocol demos: `dart run example/simple-events/main.dart`, `example/chat-app/main.dart`. Flutter local-first: `link/sdks/dart/sync/example`.
