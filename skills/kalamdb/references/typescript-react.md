@@ -2,7 +2,7 @@
 
 Use this file for `@kalamdb/react`, component patterns, hooks, browser-based live subscriptions, and consumer/ORM integration from React.
 
-For the end-to-end project setup, pick a [template](cli-templates.md) first, then `kalam dev`. Manual full-stack delta (no template yet): [full-stack-react-agent.md](../examples/full-stack-react-agent.md).
+For the end-to-end project setup, pick a [template](cli-templates.md) first (`chat-with-ai` or `react-ai-chat` for chat UIs), then `kalam dev --agent`. Manual full-stack delta: [full-stack-react-agent.md](../examples/full-stack-react-agent.md).
 
 ## Sources
 

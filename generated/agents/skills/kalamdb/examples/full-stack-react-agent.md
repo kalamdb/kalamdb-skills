@@ -4,21 +4,25 @@ Build a React frontend and a topic agent that share one schema, one generated OR
 
 ## Prefer a Template
 
-**Check [cli-templates.md](../references/cli-templates.md) first.** When a template matches this stack (e.g. a future `react-agent` template), init with it and extend — do not recreate the same layout from scratch:
+**Run `kalam init --list-templates --json` first.** For chat + agent apps, init with a repository example and extend it.
+
+Multi-user rooms (several people see the same messages):
 
 ```bash
 kalam init --yes \
   --name my-chat \
   --languages typescript \
-  --template react-agent \
+  --template chat-with-ai \
   --server-mode local \
-  --package-manager pnpm
-kalam dev
+  --package-manager npm
+kalam dev start --agent
 ```
 
-The steps below describe the **manual delta** when no template exists yet, or when extending the closest available template (today: usually `simple-live`).
+Personal AI assistant (only the signed-in user sees their threads): `--template react-ai-chat`.
 
-Reference implementation: `examples/react-ai-chat/` in the KalamDB repo.
+The steps below describe the **manual delta** only when no example matches.
+
+Reference implementations: `examples/chat-with-ai/` (SHARED + RLS) and `examples/react-ai-chat/` (USER + STREAM) in the KalamDB repo.
 
 ## Architecture
 
@@ -32,9 +36,16 @@ schema.sql  ──► kalam dev (watch) ──► src/generated/kalam.ts  (Drizz
 
 User actions in React insert rows → KalamDB publishes topic events → agent consumes and writes back → React live queries update instantly.
 
+## Pick USER vs SHARED first
+
+| Goal | Tables | Template |
+|------|--------|----------|
+| Personal assistant / ChatGPT clone | `CREATE USER TABLE` conversations/messages + `CREATE STREAM TABLE` tokens. No `CREATE POLICY`. No fake `user_id`. | `react-ai-chat` |
+| Multi-user rooms (Slack-like) | `CREATE SHARED TABLE` rooms, members, messages + `CREATE POLICY` with `CURRENT_USER` membership `IN` subqueries | `chat-with-ai` |
+
 ## AI Assistant Chat Rule
 
-When asked to build an AI assistant or ChatGPT-like chat app, always include:
+When asked to build an AI assistant or ChatGPT-like chat app (**one user, private threads**), always include:
 
 - direct `CREATE USER TABLE` declarations for `conversations` and `messages`
 - a direct `CREATE STREAM TABLE` declaration for token/typing rows, for example `message_streams` or `typing_tokens`
@@ -46,22 +57,25 @@ Do not add an app-level `users` table or fake `user_id` tenancy columns for USER
 
 Do not collapse assistant output into a single final message only. The frontend should render the assistant placeholder while status is `thinking`, append tokens from the STREAM table while status is `streaming`, and mark the assistant message `complete` when the agent finishes.
 
+When asked to build a **multi-user chat room**, do not use USER messages. Use SHARED rooms/members/messages and `CREATE POLICY` as in `examples/chat-with-ai/kalam/schema.sql`.
+
 ## 1. Scaffold with `kalam init`
 
-Pick the closest template ([catalog](../references/cli-templates.md)). Today that is usually `simple-live` until a React+agent template ships:
+Do **not** start from `simple-live` for a chat app. Pick the closest chat template ([catalog](../references/cli-templates.md)):
 
 ```bash
 mkdir my-chat && cd my-chat
+kalam init --list-templates --json
 kalam init --yes \
   --name my-chat \
   --schema-mode sql \
   --languages typescript \
-  --template simple-live \
+  --template chat-with-ai \
   --server-mode local \
-  --package-manager pnpm
+  --package-manager npm
 ```
 
-This creates `kalam.toml`, starter `schema.sql`, `kalam/migrations/`, and `[dev.processes].app`. Replace or extend the template's Node demo with Vite + React (next steps).
+This downloads the example, rewrites `@kalamdb/*` to published versions, copies `.env`, and writes `[dev.processes]` for `app` and `agent`. Then `kalam dev start --agent`.
 
 Non-interactive shells must pass `--yes`, `--template`, and every other flag explicitly. See [cli-init.md](../references/cli-init.md).
 

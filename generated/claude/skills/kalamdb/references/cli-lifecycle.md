@@ -26,9 +26,9 @@ Schema, migrations, environments, status. Pair with [cli-init.md](cli-init.md) /
 
 ## Lifecycles
 
-**New local app:** pick [template](cli-templates.md) → `kalam init --template <id>` → edit `schema.sql` → `kalam dev`
+**New local app:** `kalam init --list-templates --json` → `kalam init --template <id>` → edit `schema.sql` → `kalam dev start --agent`
 
-**Full-stack React + agent:** closest `--template` → extend → `kalam dev` (fallback: [full-stack-react-agent.md](../examples/full-stack-react-agent.md))
+**Full-stack React + agent:** `--template chat-with-ai` (SHARED rooms) or `react-ai-chat` (USER assistant) → `kalam dev start --agent` (manual delta: [full-stack-react-agent.md](../examples/full-stack-react-agent.md))
 
 **Schema change:** edit `schema.sql` → `kalam schema gen` → `kalam migration create <name>` → `kalam db migrate` (or let `kalam dev` watch)
 

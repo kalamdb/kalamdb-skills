@@ -2,7 +2,7 @@
 
 ```ts
 import { Auth, createClient } from '@kalamdb/client';
-import { file, kalamFile, kTable, kalamDriver, liveTable } from '@kalamdb/orm';
+import { file, kalamFile, kTable, kalamDriver, liveTable, executeAsUser } from '@kalamdb/orm';
 import { bigint, text, timestamp } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pg-proxy';
 
@@ -36,4 +36,18 @@ const stop = await liveTable(client, messages, (liveRows) => {
 }, { lastRows: 50 });
 
 await stop();
+
+// Shared table: kTable.shared still needs CREATE POLICY in schema.sql.
+export const rooms = kTable.shared('chat.rooms', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+});
+
+// USER-table worker write (not a callback):
+// await executeAsUser(
+//   client,
+//   db.insert(messages).values({ room: 'main', role: 'assistant', body: 'done' }),
+//   'user_123',
+// );
+// Shared-table worker write: db.update(rooms)... under a TO service policy.
 ```

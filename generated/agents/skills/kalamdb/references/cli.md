@@ -30,16 +30,17 @@ Interactive and one-shot SQL:
 - `kalam` (interactive shell)
 - `kalam update`
 - `kalam version`
-- `kalam doctor`
+- `kalam doctor` (`--strict` exits non-zero on any failed check; `-v` is verbose)
 - `kalam login`
 - `kalam logout`
 - `kalam whoami`
-- `kalam token create --name <name>`
+- `kalam token create --name <name> [--role service|user|dba|system] [--save]`
+- `kalam invite --email <email> --role <user|service|dba|system> [--expires-in-days 7]`
 
 Project workflow (require `kalam.toml`):
 
 - `kalam init` — scaffold a new project
-- `kalam dev` — local dev orchestration (server, schema pipeline, processes)
+- `kalam dev` / `kalam dev --agent` — local dev orchestration (server, schema pipeline, processes)
 - `kalam link` — add/update environment entries
 - `kalam schema gen` / `kalam schema pull`
 - `kalam migration create` / `kalam migration status` / `kalam migration seal`
@@ -67,6 +68,7 @@ Execution:
 - `--file <path>`
 - `--subscribe <sql>`
 - `--list-subscriptions`
+- `--consume --topic <name> [--group <id>] [--from earliest|latest|<offset>] [--consume-limit N] [--consume-timeout SECONDS]`
 - `--format table|json|csv`, `--json`, `--csv` — table format expands multi-line `EXPLAIN` plans to terminal width; JSON for full plan text
 - timeout controls: `--timeout`, `--connection-timeout`, `--receive-timeout`, `--auth-timeout`, `--subscription-timeout`, `--initial-data-timeout`
 - timeout presets: `--fast-timeouts`, `--relaxed-timeouts`
@@ -113,28 +115,26 @@ Table transfer notes:
 
 ## Schema Watch
 
-The ORM generator can be driven from CLI schema watching:
+Prefer **`kalam dev`** (or `kalam dev --agent`). It polls `schema.sql`, runs the migration pipeline, and regenerates SDK artifacts. There is no `kalam schema watch` subcommand.
+
+`kalam --watch-schema` is legacy server-side polling of `information_schema`. It does not read `kalam.toml`, manage migrations, or start child processes. Use it only for older environments that are not a `kalam init` project:
 
 ```bash
 kalam --watch-schema --namespace app --run "npm run schema:gen" --run-on-start
-kalam --watch-schema --table app.messages --run "npm run schema:gen"
 ```
-
-Use `--interval 2s` or `--interval 500ms` for faster local loops.
 
 ## Quick Start: New Project
 
 ```bash
 mkdir my-app && cd my-app
-kalam init --yes
-kalam dev --agent
-# or, when a foreground process is inconvenient:
-# kalam dev start --agent
-# kalam dev status
-# kalam -c "SELECT 1;" --json
-# kalam dev stop
-kalam -c "SELECT table_schema, table_name FROM information_schema.tables;" --json
+kalam init --list-templates --json
+kalam init --yes --template <id> --languages typescript --package-manager npm
+kalam dev start --agent
+kalam -c "SELECT table_schema, table_name FROM information_schema.tables;" --json \
+  --url http://127.0.0.1:2900 --user root --password kalamdb123
 ```
+
+Do not rely on a saved `local` CLI instance for project SQL. Pass `--url`/`--user`/`--password` (or `--env` from `kalam.toml`) so agents do not reuse expired credentials.
 
 ## Database discovery
 
@@ -143,7 +143,7 @@ Prefer querying KalamDB when you need the current schema or state.
 Use:
 
 ```bash
-kalam -c "<SQL>" --json
+kalam -c "<SQL>" --json --url http://127.0.0.1:2900 --user root --password kalamdb123
 ```
 
 Tables:

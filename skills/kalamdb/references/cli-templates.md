@@ -16,62 +16,72 @@ Sources: `cli/templates/`, `cli/build.rs` (embedded at compile time), `cli/src/w
 
 | Method | When to use |
 |--------|-------------|
+| `kalam init --list-templates --json` | **Agents first.** Machine-readable catalog + `next` command. Does not require an empty directory. |
 | Interactive `kalam init` | TTY: **Project template** menu lists every built-in template with descriptions |
 | `--template <id>` | CI, agents, non-TTY — pass explicit id with `--yes` |
-| This catalog | Agents routing tasks before init — pick id from the table below |
+| This catalog | Human routing after `--list-templates` |
 | Source tree | Contributors adding templates: `cli/templates/<language>/<id>/info.toml` |
 
-There is no separate `kalam init --list-templates` command today. Treat **this skill file** plus `cli/templates/**/info.toml` in the KalamDB repo as the catalog source of truth until a CLI list command exists.
-
-Repository-loaded templates ("From repository") are planned but not available yet.
+`--template` accepts either an embedded template id or a repository example id. Repository examples are not bundled in the binary; `kalam init` downloads `examples/<name>` from the KalamDB GitHub archive into the project directory, rewrites `file:` `@kalamdb/*` deps to the CLI version, drops lockfiles that pin those paths, and copies `.env.example` to `.env` when needed.
 
 ## Template Catalog
 
-Templates are embedded in the CLI at build time from `cli/templates/<language>/<id>/`. Each folder needs an `info.toml` with at least `description`.
+Embedded templates are compiled into the CLI from `cli/templates/<language>/<id>/`. Each folder needs an `info.toml` with at least `description`.
 
-### TypeScript
+### TypeScript (embedded)
 
 | Template id | Description | Good for | `[dev.processes]` | Notes |
 |-------------|-------------|----------|-------------------|-------|
 | `simple-live` | Live subscription starter with sample inserts | Learning ORM live tables, minimal Node worker | `app` → package manager `dev` | Default with `--yes`. Node + `@kalamdb/orm`, not React. |
 
-<!-- Add new TypeScript templates below as they ship. Example row:
-| `react-agent` | React live UI + topic consumer agent | Full-stack chat, agents reacting to inserts | `app`, `agent` | Vite + `@kalamdb/react` + `@kalamdb/consumer` |
--->
-
-### Dart / Flutter
+### Dart / Flutter (embedded)
 
 | Template id | Description | Good for | `[dev.processes]` | Notes |
 |-------------|-------------|----------|-------------------|-------|
 | `simple-live` | Flutter local-first starter with `kalam_sync` | Flutter apps, local-first lists | `app` → `flutter run` | Default for Dart-only `--yes`. Writes `pubspec.yaml`, `lib/main.dart`, and generates `lib/generated/kalam.dart`. |
 
+### Repository examples (downloaded)
+
+Pass these as `--template <id>`. They appear in the same interactive `kalam init` menu.
+
+| Template id | Description | Good for |
+|-------------|-------------|----------|
+| `live-okf-context-sync` | OKF folder sync with live FILE columns | Multi-client file/context sync |
+| `realtime-ops-feed` | Small browser app with live SQL subscriptions | Live dashboards |
+| `chat-with-ai` | Realtime multi-user React chat with SHARED rooms, RLS, and a topic agent | Chat rooms several users share |
+| `react-ai-chat` | Personal AI assistant with USER tables, STREAM tokens, and approvals | Private ChatGPT-like assistant |
+| `summarizer-agent` | Worker-only topic consumer that enriches rows | Background enrichment workers |
+
 ### Scaffold (always applied)
 
-Every init also applies the `scaffold/default` template: `kalam.toml`, `kalam/migrations/`, `kalam/server/server.toml`, `.env.example`, etc. Language templates layer **on top** of this base.
+Every init also applies the `scaffold/default` template: `kalam.toml`, `kalam/migrations/`, `kalam/server/server.toml`, `.env.example`, etc. Language templates and repository examples layer **on top** of this base.
 
 ## Choosing a Template by Task
 
 | User goal | Start with | Then |
 |-----------|------------|------|
-| Full-stack React + topic agent | Closest React/agent template when available; until then extend `simple-live` or follow [full-stack-react-agent.md](../examples/full-stack-react-agent.md) | `kalam dev` |
-| Browser live UI only | Future React templates; today: add Vite + `@kalamdb/react` to a TS init | [typescript-react.md](typescript-react.md) |
-| Node worker / agent only | `simple-live` or future worker templates | [typescript-consumer.md](typescript-consumer.md) |
+| Multi-user realtime chat | `--template chat-with-ai` | SHARED rooms + `CREATE POLICY`; `kalam dev start --agent` |
+| Personal AI assistant | `--template react-ai-chat` | USER + STREAM; `kalam dev start --agent` |
+| Browser live UI only | `--template realtime-ops-feed` | [typescript-react.md](typescript-react.md) |
+| Node worker / agent only | `--template summarizer-agent` | [typescript-consumer.md](typescript-consumer.md) |
+| FILE / folder sync | `--template live-okf-context-sync` | `kalam dev start --agent` |
 | Flutter / mobile | `kalam init --languages dart --template simple-live` | [dart-sync.md](dart-sync.md) |
-| Minimal ORM demo | `simple-live` | `kalam dev` |
+| Minimal ORM demo | `simple-live` | `kalam dev start --agent` |
 
 When a dedicated template exists for the task, **use it** — do not duplicate its file layout manually.
 
 ## Init with a Template
 
 ```bash
+kalam init --list-templates --json
 kalam init --yes \
   --name my-app \
   --schema-mode sql \
   --languages typescript \
   --template simple-live \
   --server-mode local \
-  --package-manager pnpm
-kalam dev
+  --package-manager npm
+kalam dev start --agent
 ```
 
 Dart / Flutter:
@@ -108,18 +118,19 @@ After init, `kalam dev` applies schema and regenerates ORM types — templates s
 
 After `kalam init --template <id>`:
 
-1. Edit `schema.sql` first — add explicit `CREATE USER TABLE` / `CREATE STREAM TABLE` tables
-2. Let `kalam dev` or `kalam schema gen` regenerate ORM output
-3. Implement features against generated tables/types; do not create hand-written duplicate row models first
-4. Create topics/sources from setup scripts or idempotent worker startup SQL
-5. Add `[dev.processes]` keys for extra workers (e.g. `agent = "pnpm agent"`)
-6. Keep generated output under `src/generated/` (or path in `kalam.toml`) read-only
+1. Edit `schema.sql` first — add explicit `CREATE USER TABLE` / `CREATE SHARED TABLE` / `CREATE STREAM TABLE`
+2. After any `CREATE SHARED TABLE`, add `CREATE POLICY` in the same file (FORCE RLS, default-deny)
+3. Let `kalam dev` or `kalam schema gen` regenerate ORM output (`ns_table` + `"ns.table"`)
+4. Implement features against generated tables/types; do not create hand-written duplicate row models first
+5. Create topics/sources from setup scripts or idempotent worker startup SQL
+6. Add `[dev.processes]` keys for extra workers (e.g. `agent = "pnpm agent"`)
+7. Keep generated output under `src/generated/` (or path in `kalam.toml`) read-only
 
 Do **not** delete the template's `kalam.toml` / migration setup unless the user explicitly wants a non-workflow project.
 
 ## Maintaining This Catalog
 
-When adding a template under `cli/templates/` in KalamDB:
+When adding a template under `cli/templates/` or a repository example in `cli/src/workflow/project/repository_examples.rs`:
 
 1. Add `info.toml` with a clear `description` (shown in interactive init)
 2. Wire `[dev.processes]` in the template's `kalam.toml` fragment or document expected keys
@@ -132,5 +143,5 @@ When adding a template under `cli/templates/` in KalamDB:
 
 - Init flags and layout: [cli-init.md](cli-init.md)
 - Local orchestration: [cli-dev.md](cli-dev.md)
-- Full-stack manual path (no template yet): [full-stack-react-agent.md](../examples/full-stack-react-agent.md)
+- Full-stack React + agent: [full-stack-react-agent.md](../examples/full-stack-react-agent.md) (`--template chat-with-ai` or `react-ai-chat`)
 - Example configs: [cli-templates.md](../examples/cli-templates.md)

@@ -4,9 +4,9 @@ Use this file when connecting KalamDB to apps, agents, workers, PostgreSQL, Reac
 
 ## Full-Stack React + Agent (recommended path)
 
-1. Pick template — [cli-templates.md](../references/cli-templates.md) → `kalam init --template <id> --yes ...`
+1. Pick template — [cli-templates.md](cli-templates.md) → `kalam init --yes --template chat-with-ai` (or `react-ai-chat`)
 2. Extend scaffold — edit `schema.sql`, app source, `[dev.processes]` as needed
-3. `kalam dev` — one command for server, schema auto-gen, and all managed processes
+3. `kalam dev --agent` — one command for server, schema auto-gen, and all managed processes
 
 Do not hand-build project layout when a template already covers the stack. Manual fallback: [full-stack-react-agent.md](../examples/full-stack-react-agent.md).
 
@@ -15,8 +15,9 @@ Do not hand-build project layout when a template already covers the stack. Manua
 - Browser apps: `@kalamdb/client`, `@kalamdb/react`, Admin UI, WebSocket live rows
 - Node services: `@kalamdb/client`, `@kalamdb/orm`
 - Rust services and workers: `kalam-client` (`KalamLinkClient`)
-- Topic workers and agents: `@kalamdb/consumer` (TypeScript) or `kalam-client` with `consumer` feature (Rust)
-- Flutter/Dart: `kalam init --languages dart` then `kalam_sync` (`Kalam.open`). Live SQL only: `kalam_link` (`KalamClient`). Custom actions: `kalam_sync_generator`.
+- Topic workers and agents: `@kalamdb/consumer` (TypeScript) or `kalam-client` with `consumer` feature (Rust). Shared topic sources still need `TO service` policies.
+- Flutter/Dart: `kalam init --languages dart` then `kalam_sync` (`Kalam.open`, Drift + SQLite). Live SQL only: `kalam_link` (`KalamClient`). Custom actions: `kalam_sync_generator`. Typed-layer map: [orms.md](orms.md).
+- Shared tables: `CREATE POLICY` — [rls-policies.md](rls-policies.md). Default new tables to `USER`. Mixed apps often pair `SHARED` rooms/tickets/orders with `USER` messages/notes/carts.
 - PostgreSQL: `pg_kalam` FDW and gRPC bridge
 - AI/chat examples: `examples/react-ai-chat`, `examples/chat-with-ai`, `examples/summarizer-agent`
 

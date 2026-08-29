@@ -37,6 +37,8 @@ let resp = client.execute_query("SELECT 1", None, None, None).await?;
 
 Prefer `live()` / `live_with_config()` for UI row state; `live_events()` for raw frames.
 
+No Rust ORM. Do not add Diesel or SeaORM — issue SQL through this client. Typed layers: [orms.md](orms.md).
+
 ## Agent Rules
 
 - `execute_query()`, not `query()`.

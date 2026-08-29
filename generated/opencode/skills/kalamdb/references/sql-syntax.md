@@ -54,6 +54,8 @@ Table options are type-specific: `USER` supports `STORAGE_ID`, `USE_USER_STORAGE
 
 Shared tables always use FORCE row-level security. Creating a shared table without `CREATE POLICY` is default-deny for User and Service. `ACCESS_LEVEL` is not a table option. Grant rows with `CREATE POLICY`. System and DBA bypass RLS.
 
+When to use USER vs SHARED, policy shapes, and live routing: [rls-policies.md](rls-policies.md). Copy-paste cases: [sql-patterns.md](../examples/sql-patterns.md).
+
 DDL:
 
 ```sql
@@ -138,6 +140,8 @@ Limits:
 - `ON CONFLICT DO NOTHING`, `ON CONFLICT ON CONSTRAINT`, `ON CONFLICT DO UPDATE WHERE`, and
   tuple assignments in `DO UPDATE SET` are not supported.
 - `system.*` tables are rejected.
+- `user` / `service` cannot `ON CONFLICT DO UPDATE` on **shared** tables (FORCE RLS).
+  Use plain `INSERT`/`UPDATE`, or upsert as `dba`/`system`. See [rls-policies.md](rls-policies.md).
 
 ### `RETURNING` on upsert
 

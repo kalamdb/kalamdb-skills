@@ -1,6 +1,6 @@
 # TypeScript ORM
 
-Use this file for `@kalamdb/orm`, Drizzle integration, schema generation, custom columns, and typed live tables.
+Use this file for `@kalamdb/orm`, Drizzle integration, schema generation, custom columns, and typed live tables. Language chooser: [orms.md](orms.md). Shared-table policies: [rls-policies.md](rls-policies.md).
 
 ## Sources
 
@@ -13,6 +13,8 @@ Use this file for `@kalamdb/orm`, Drizzle integration, schema generation, custom
 npm i @kalamdb/client @kalamdb/orm drizzle-orm
 ```
 
+This is the **only** TypeScript ORM. Do not add Prisma, TypeORM, or Kysely for KalamDB tables.
+
 ## Owns
 
 - `kalamDriver(client)` with `drizzle(kalamDriver(client))` for Drizzle `pg-proxy`
@@ -22,7 +24,19 @@ npm i @kalamdb/client @kalamdb/orm drizzle-orm
 - KalamDB-specific columns: `file()`, `bytes()`, `embedding()`
 - `liveTable()`
 - `executeAsUser()` for compiled Drizzle builders
-- `kalamdb-orm` schema generator
+- `configureKalamOrm({ namespace })` only when using **unqualified** hand-written table names
+- `kalamdb-orm` schema generator (CLI `kalam schema gen` always emits namespaced `ns_table` / `"ns.table"` plus system columns)
+
+## Table helpers vs SQL type
+
+| Helper | SQL | Policies |
+|--------|-----|----------|
+| `kTable.user('app.messages', cols)` | `CREATE USER TABLE` | None — isolation is physical |
+| `kTable.shared('app.docs', cols)` | `CREATE SHARED TABLE` | Required `CREATE POLICY` in `schema.sql` |
+| `kTable.stream('app.events', cols)` | `CREATE STREAM TABLE` | None |
+| `kTable.system(...)` | Engine tables | DBA/system only |
+
+The helper only tags metadata for the driver. Shared tables with no policy still return zero rows to `user`/`service`.
 
 ## Schema Generation
 
@@ -53,6 +67,8 @@ Important options:
 - `--bigint-mode <string|bigint|number>`
 - `--no-type-aliases`
 
+Generated exports stay namespaced (`chat_messages` / `"chat.messages"`) even for a single namespace. `kalam schema gen` also includes system columns (`_seq`, `_deleted`). Do not expect short names like `messages` unless you opt into unqualified generation. Import `chat_demo_messagesConfig.systemColumns` — it is always defined.
+
 ## Type Mapping Highlights
 
 - `BIGINT` defaults to string to preserve Int64 precision.
@@ -82,3 +98,19 @@ await db.insert(attachments).values({
 For raw SQL strings, use `queryWithFiles()` from `@kalamdb/orm` or `@kalamdb/client`. See [typescript-files.md](typescript-files.md).
 
 Use generated schema types directly in React and consumer workers when sharing domain tables. USER-table data is scoped by authenticated KalamDB user; do not add fake `user_id` tenancy columns or app-level `users` tables for auth identity.
+
+Workers writing into a USER table:
+
+```typescript
+import { executeAsUser } from '@kalamdb/orm';
+
+await executeAsUser(
+  client,
+  db.insert(messages).values({ room: 'main', role: 'assistant', body: 'done' }),
+  'user_123',
+);
+```
+
+Signature is `(client, sqlOrDrizzleBuilder, userId)`. Do not pass a callback. `executeAsUser` does not rewrite shared-table `CURRENT_USER`. Shared writes need a `TO service` policy.
+
+Example: [typescript-orm.md](../examples/typescript-orm.md).

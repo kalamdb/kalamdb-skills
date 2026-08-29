@@ -23,6 +23,8 @@ Use this file for authentication, authorization, bootstrap, cookies, JWT, OIDC, 
 
 `system > dba > service > user`
 
+Shared-table row visibility is **not** this hierarchy for `user`/`service`: those roles are default-deny on `SHARED` tables until `CREATE POLICY`. See [rls-policies.md](rls-policies.md).
+
 Always verify elevated role claims against persisted local user state before privileged work. Regular external OIDC users can stay stateless when `[auth.oidc].default_role = "user"`, but external-token auth must check for an existing `system.users` row first so deleted users and same-ID local password users are not bypassed.
 
 ## Endpoint Rules

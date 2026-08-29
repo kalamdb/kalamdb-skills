@@ -23,27 +23,17 @@ kalam dev
 
 ## Full-Stack React + Topic Agent
 
-When a matching template exists (e.g. future `react-agent`), use `--template` and extend. Otherwise see [full-stack-react-agent.md](full-stack-react-agent.md) for the delta from the nearest template.
-
 ```bash
 kalam init --yes \
   --name my-chat \
   --languages typescript \
-  --template simple-live \
+  --template chat-with-ai \
   --server-mode local \
   --package-manager pnpm
 kalam dev --agent
 ```
 
-Configure `[dev.processes]` with both frontend and agent when the template does not already:
-
-```toml
-[dev.processes]
-app = "pnpm dev"
-agent = "pnpm agent"
-```
-
-Details: [full-stack-react-agent.md](full-stack-react-agent.md). Example config: [kalam-fullstack.toml](kalam-fullstack.toml). Reference app: `examples/react-ai-chat/` in the KalamDB repo.
+Use `--template react-ai-chat` for approvals and attachments. The [full-stack-react-agent.md](full-stack-react-agent.md) guide is only the manual delta when no example matches.
 
 ## New Project (Non-Interactive / Agents)
 

@@ -6,12 +6,18 @@ Sources: `cli/DEV.md`, `cli/src/workflow/project/init.rs`, `cli/templates/`.
 
 ## Template-First (Agents)
 
-**Pick the closest built-in template and extend it** — do not hand-build an equivalent project layout when a template already covers the stack.
+**List templates, then init.** Do not hand-build an equivalent project layout when a template already covers the stack.
 
-1. Read the catalog: [cli-templates.md](cli-templates.md)
-2. Init with `--template <id>` (or choose in the interactive menu)
+```bash
+kalam init --list-templates --json
+```
+
+JSON shape: `{ ok, cli_version, default_template, next, templates: [{ id, kind, language, description }] }`. Use `next` with the chosen `id`.
+
+1. Match the goal: `chat-with-ai` (SHARED rooms) vs `react-ai-chat` (USER assistant) vs `simple-live`
+2. Init with `--yes --template <id> --languages ... --package-manager ...`
 3. Customize `schema.sql`, source files, and `[dev.processes]`
-4. Run `kalam dev`
+4. Run `kalam dev start --agent`
 
 Quick lookup: [cli-templates.md](../examples/cli-templates.md).
 
@@ -53,7 +59,7 @@ Dart-only projects write `app = "flutter run"` (no `package_manager` field). Mix
 
 ## Interactive (TTY)
 
-Prompts: name → schema mode → languages → **template** → package manager (if TS) → server mode → URL (if remote).
+Prompts: name → schema mode → languages → **template** (embedded starters + repository examples) → package manager (if TS) → server mode → URL (if remote).
 
 Language menu includes **TypeScript** and **Dart / Flutter**. `--languages flutter` is accepted and stored as `dart`.
 
@@ -66,7 +72,8 @@ Menus: `Up`/`Down`, `Space` (multi-select), `Enter`, `Esc`.
 | `--name` | Project + default namespace |
 | `--schema-mode sql\|remote` | Prefer `sql`; `remote` rejected at init today |
 | `--languages typescript,dart` | Generation targets (`ts` and `flutter` aliases accepted) |
-| `--template <id>` | Built-in template id — see [cli-templates.md](cli-templates.md) |
+| `--template <id>` | Built-in template or repository example id — see [cli-templates.md](cli-templates.md) |
+| `--list-templates` | Print catalog and exit (use `--json` for agents) |
 | `--package-manager npm\|pnpm\|yarn\|bun` | Required for TS when multiple on PATH |
 | `--server-mode local\|remote` | Whether `kalam dev` starts server |
 | `--server-url` | Dev URL (remote mode) |
@@ -97,16 +104,24 @@ kalam init --yes --name my-app --schema-mode sql --languages dart --template sim
 
 ## Full-Stack React + Agent
 
-When a dedicated template exists (e.g. future `react-agent`), use `--template` and extend from there.
+Use a repository example instead of assembling the stack by hand:
 
-Until then: init with the closest template, then follow [full-stack-react-agent.md](../examples/full-stack-react-agent.md) for the delta (React, consumer, extra `[dev.processes].agent`). Do not ignore templates and recreate the same structure manually.
+```bash
+kalam init --yes --name my-chat --languages typescript --template chat-with-ai --server-mode local --package-manager npm
+kalam dev start --agent
+```
+
+`chat-with-ai` is SHARED rooms + RLS for multi-user chat. Prefer `react-ai-chat` for a personal assistant (USER + STREAM, approvals/attachments). The [full-stack-react-agent.md](../examples/full-stack-react-agent.md) guide is the manual delta only when no example matches.
+
+Init of a repository example rewrites `file:` `@kalamdb/*` dependencies to the CLI version and copies `.env.example` to `.env`.
 
 ## Agent Rules
 
 - **Template-first:** [cli-templates.md](cli-templates.md) before writing boilerplate.
 - CI/non-TTY: always `--yes` + every flag explicit, including `--template`.
 - TS needs npm/pnpm/yarn/bun on `PATH` unless deps installed manually after.
-- Next step: `kalam dev --agent`. Details: [cli-dev.md](cli-dev.md). Config reference: [kalam-toml.md](kalam-toml.md).
+- Next step: `kalam dev start --agent`. Details: [cli-dev.md](cli-dev.md). Config reference: [kalam-toml.md](kalam-toml.md).
+- Unknown template → `kalam init --list-templates --json`.
 - New CLI template shipped → update [cli-templates.md](cli-templates.md) in the same change window.
 
 ## Errors

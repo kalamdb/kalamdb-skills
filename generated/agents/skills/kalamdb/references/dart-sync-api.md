@@ -7,14 +7,14 @@ Method tables for `kalam_sync` / `Kalam`. Overview: [dart-sync.md](dart-sync.md)
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `Kalam.open({url, subject, ...})` | `Future<Kalam>` | Open account-scoped Drift cache; lazy socket |
-| `Kalam.catchUp({...})` | `Future<KalamCatchUpResult>` | Bounded headless replay from checkpoint |
+| `Kalam.catchUp({...})` | `Future<KalamCatchUpResult>` | Bounded headless replay from SQLite checkpoint, then disconnect |
 | `Kalam.id()` | `String` | RFC 4122 v4 id |
 | `table(spec)` | `KalamTableBinding<T>` | Bind generated `KalamTableSpec` |
 | `subscribe(consumer)` | `Future<KalamSyncSubscription>` | Start widget/service-scoped live consumer |
 | `pause()` / `resume()` | `Future<void>` | Lifecycle; resume from SQLite checkpoint |
 | `dispose()` | `Future<void>` | Close sync, transport, database |
 
-`open()` params: `url`, `subject` (required), `authProvider`, `namespace` (default `default`), `actionDefinitions`, `keepaliveInterval`.
+`open()` params: `url`, `subject` (required), `authProvider`, `namespace` (default `default`), `actionDefinitions`, `keepaliveInterval`, `databaseFactory` (default `KalamFlutterDatabaseFactory` → `drift_flutter` SQLite).
 
 ## `KalamTableBinding<T>`
 
@@ -49,3 +49,7 @@ Method tables for `kalam_sync` / `Kalam`. Overview: [dart-sync.md](dart-sync.md)
 | `queryWithFiles(stepName, {sql, files, params})` | FILE upload as a step |
 
 Queue `enqueue` / generated methods: `orderingKey`, `optimistic: table.optimisticInsert(row)`.
+
+## Drift types
+
+`import 'package:kalam_sync/drift.dart';` for `KalamSyncDatabase`, `KalamSyncStore`, and `package:drift/drift.dart`. App UI code should stay on `package:kalam_sync/kalam_sync.dart`.

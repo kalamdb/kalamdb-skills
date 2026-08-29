@@ -35,6 +35,13 @@
 - Watch for local port exhaustion or stale node processes.
 - Prefer the existing cluster scripts and documented health checks.
 
+### Shared table returns zero rows
+
+- `SHARED` is FORCE RLS. `user` / `service` see nothing until `CREATE POLICY`. See [rls-policies.md](rls-policies.md).
+- Confirm the policy `TO` role matches the session (`TO user` vs `TO service`).
+- `EXECUTE AS` does not change shared `CURRENT_USER`.
+- Dart sync: the Drift cache only mirrors rows the live query already returned. Wrong `subject` opens a different SQLite file (`kalam_sync_<hash>`).
+
 ### Generated code boundaries
 
 - Do not hand-edit generated Dart files.

@@ -1,6 +1,8 @@
 # Dart SDK
 
-`kalam_link` — Flutter/Dart queries and live rows. Type: `KalamClient`.
+`kalam_link` — Flutter/Dart **live SQL only** (no on-device cache). Type: `KalamClient`.
+
+For new Flutter apps prefer **`kalam_sync`** (Drift + SQLite cache): [dart-sync.md](dart-sync.md). ORM map: [orms.md](orms.md).
 
 **API tables:** [dart-sdk-api.md](dart-sdk-api.md) (open only when calling methods).
 
@@ -9,10 +11,12 @@ Sources: `link/sdks/dart/lib/src/kalam_client.dart`, `link/kalam-link-dart/`.
 ## Install
 
 ```yaml
-kalam_link: ^0.5.2-rc.2
+kalam_link: ^0.6.0-rc.0
 ```
 
 Import: `package:kalam_link/kalam_link.dart`.
+
+`kalam_sync` already depends on this package. Add `kalam_link` directly only when you do not want a local Drift database.
 
 ## Boot (Flutter)
 

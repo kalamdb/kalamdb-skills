@@ -14,7 +14,7 @@ Runs the local KalamDB development environment in deterministic, non-interactive
 
 `--agent` never waits for stdin. It auto-downloads a missing compatible server, reuses a healthy server before resolving a local binary, auto-applies ordinary `schema.sql` changes, and prints compact `KALAM_*` events. Destructive changes return `KALAM_ERROR code=DESTRUCTIVE_SCHEMA_CHANGE` unless `--force` is also passed.
 
-Preferred agent workflow: `kalam init --yes` → `kalam dev --agent` (or `kalam dev start --agent`) → `kalam -c "<SQL>" --json`.
+Preferred agent workflow: `kalam init --list-templates --json` → `kalam init --yes --template <id> ...` → `kalam dev start --agent` → `kalam -c "<SQL>" --json --url http://127.0.0.1:2900 --user root --password kalamdb123`.
 
 ## Flags
 
@@ -32,13 +32,15 @@ Preferred agent workflow: `kalam init --yes` → `kalam dev --agent` (or `kalam 
 ```bash
 kalam dev start --agent
 kalam dev status
-kalam dev logs [--follow] [-n N]
+kalam dev logs [--follow|-F] [--lines|-n N]
 kalam dev stop
 ```
 
 Foreground `kalam dev` is unchanged. `start` spawns a detached `kalam dev --agent` child (never recursive `dev start`), waits for `KALAM_READY`, and writes `kalam/cli/dev.session.json`. It reuses a live session instead of starting a second one. `status`/`stop` are idempotent. This is a PID/session file, not a machine-wide daemon.
 
-Compact events: `KALAM_DEV_STARTED`, `KALAM_DEV_REUSED`, `KALAM_DEV_STATUS`, `KALAM_DEV_STOPPED`. Startup failures may surface the child's `KALAM_ERROR` or `DEV_START_FAILED`.
+Ready/error scanning uses only the **current** start: the CLI writes `--- kalam dev start ---` and ignores older `KALAM_ERROR` / `KALAM_READY` lines above that marker. Do not truncate the log by hand; retry `kalam dev start --agent`.
+
+Compact events: `KALAM_DEV_STARTED`, `KALAM_DEV_REUSED`, `KALAM_DEV_STATUS`, `KALAM_DEV_STOPPED`, plus foreground `KALAM_READY`, `KALAM_SERVER_REUSED`, `KALAM_SCHEMA_APPLIED`, and `KALAM_APP_STARTED`. Startup failures may surface the child's `KALAM_ERROR` or `DEV_START_FAILED`. Logs live at `kalam/cli/logs/kalam.log`.
 
 ## Behavior
 
@@ -72,7 +74,9 @@ Runs migrations + `kalam schema gen` + baseline update. On failure: pipeline pau
 
 ```bash
 cd my-app && kalam dev
+kalam dev --agent
 kalam dev --force
+kalam dev start --agent
 kalam dev --env prod   # caution: prod-linked config
 ```
 
@@ -86,9 +90,13 @@ kalam dev --env prod   # caution: prod-linked config
 
 | Error | Fix |
 |-------|-----|
-| `kalamdb-server not found` | Install binary, set `KALAMDB_SERVER_BIN`, or use `kalam dev --agent` to auto-download |
+| `kalamdb-server not found` / `SERVER_BINARY_MISSING` | Install binary, set `KALAMDB_SERVER_BIN`, or use `kalam dev --agent` to auto-download |
 | `KALAM_ERROR code=DESTRUCTIVE_SCHEMA_CHANGE` | Rerun `kalam dev --force` only if you intend to rebuild development data |
 | `KALAM_ERROR code=DEV_START_FAILED` | Inspect `kalam dev logs`; retry `kalam dev start --agent` |
+| `KALAM_ERROR code=AUTH_REQUIRED` | `kalam login` for the reported profile |
+| `KALAM_ERROR code=PORT_IN_USE` | Stop the other listener or init with `--server-url http://localhost:2933` |
+| `KALAM_ERROR code=SERVER_DOWNLOAD_FAILED` | Check network or set `KALAMDB_SERVER_BIN` |
+| `KALAM_ERROR code=MIGRATION_FAILED` / `SCHEMA_FAILED` | Fix `schema.sql` or the failed migration, then retry `kalam dev --agent` |
 | `schema pipeline paused` | Fix error, then `kalam dev --force` |
 | `migration failed previously` after reset | Namespace not dropped — run `kalam db reset --yes` or `kalam migration retry` |
 | Empty `[dev.processes].*` command | Fix command in `kalam.toml` |

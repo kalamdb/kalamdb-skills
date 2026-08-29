@@ -100,3 +100,43 @@ Notes:
 - Generate `KalamTables.todos` with `kalam schema gen --languages dart`.
 - Live SQL: `SELECT ... FROM ... WHERE ...` only.
 - For `replicaOnly` tables, enqueue a generated action with `optimisticInsert` instead of `insert`.
+- SQLite file is per `(url, namespace, subject)`. Do not share one `Kalam` across users.
+- Internals use Drift (`KalamSyncDatabase`). Do not declare app tables as Drift tables.
+- Shared-table rows still need `CREATE POLICY` on the server; the local cache only mirrors what live SQL returned.
+- Use `kalam_sync` for offline lists, local-first chat, and queued writes. Use `kalam_link` when you do not want SQLite.
+
+## Shared conversation (server RLS + local cache)
+
+Subscribe with params. Policies on `app.messages` decide which rows land in Drift:
+
+```dart
+kalam.subscribe(
+  messages.consumer(
+    sql: r'SELECT * FROM app.messages WHERE conversation_id = $1',
+    params: [conversationId],
+  ),
+);
+```
+
+## Tests / custom SQLite
+
+```dart
+import 'package:drift/native.dart';
+import 'package:kalam_sync/drift.dart';
+import 'package:kalam_sync/kalam_sync.dart';
+
+final class MemoryFactory implements KalamDatabaseFactory {
+  @override
+  Future<KalamSyncDatabase> open(KalamAccountIdentity identity) {
+    return Future.value(KalamSyncDatabase(NativeDatabase.memory()));
+  }
+}
+
+final kalam = await Kalam.open(
+  url: 'http://localhost:2900',
+  subject: 'alice',
+  databaseFactory: MemoryFactory(),
+);
+```
+
+Production Flutter uses `KalamFlutterDatabaseFactory` → `drift_flutter` automatically. Do not declare app tables on `KalamSyncDatabase`.
